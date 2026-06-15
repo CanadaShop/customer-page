@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>團購下單</title>
+<style>
+  :root {
+    --bg: #F9F7F3;
+    --surface: #FFFFFF;
+    --border: #E8E4DC;
+    --text: #1A1814;
+    --text-2: #7A7570;
+    --accent: #D85A30;
+    --accent-light: #FEF0EB;
+    --success: #1D9E75;
+    --success-light: #E8FDF5;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; max-width: 480px; margin: 0 auto; }
+  
+  /* ── Header ── */
+  .header { background: var(--surface); padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; }
+  .store-name { font-size: 18px; font-weight: 700; }
+  .cart-btn { position: relative; background: var(--accent); color: #fff; border: none; border-radius: 50px; padding: 8px 18px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .cart-count { background: #fff; color: var(--accent); border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+  
+  /* ── Tabs ── */
+  .tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .tab { flex: 1; padding: 12px; text-align: center; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--text-2); border-bottom: 2px solid transparent; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  
+  /* ── Product List ── */
+  .section { padding: 16px; }
+  .product-item { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 12px; overflow: hidden; display: flex; align-items: stretch; }
+  .product-img { width: 100px; min-height: 100px; flex-shrink: 0; background: var(--bg); overflow: hidden; }
+  .product-img img { width: 100%; height: 100%; object-fit: cover; }
+  .product-img .no-img { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-2); font-size: 28px; }
+  .product-info { flex: 1; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; }
+  .product-name { font-weight: 700; font-size: 15px; line-height: 1.3; }
+  .product-desc { color: var(--text-2); font-size: 12px; margin-top: 4px; line-height: 1.5; }
+  .product-price-row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+  .price { color: var(--accent); font-weight: 700; font-size: 17px; }
+  .price-unit { color: var(--text-2); font-size: 12px; margin-left: 2px; }
+  .qty-ctrl { display: flex; align-items: center; gap: 8px; }
+  .qty-btn { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--text); transition: all .1s; }
+  .qty-btn:active { background: var(--bg); transform: scale(.9); }
+  .qty-btn.active { border-color: var(--accent); color: var(--accent); }
+  .qty-num { font-weight: 700; min-width: 20px; text-align: center; }
+  
+  /* ── Cart ── */
+  .page { display: none; }
+  .page.active { display: block; }
+  .cart-empty { text-align: center; padding: 60px 20px; color: var(--text-2); }
+  .cart-empty .emoji { font-size: 48px; margin-bottom: 12px; }
+  .cart-item { background: var(--surface); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); }
+  .cart-item-name { font-weight: 600; font-size: 14px; }
+  .cart-item-sub { color: var(--text-2); font-size: 12px; margin-top: 2px; }
+  .cart-item-right { text-align: right; }
+  .cart-item-total { font-weight: 700; color: var(--accent); }
+  .cart-summary { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 16px; margin-top: 4px; }
+  .summary-row { display: flex; justify-content: space-between; font-size: 14px; padding: 4px 0; }
+  .summary-total { display: flex; justify-content: space-between; font-size: 17px; font-weight: 700; padding-top: 10px; margin-top: 8px; border-top: 1px solid var(--border); }
+  
+  /* ── Form ── */
+  .form-section { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 18px; margin-top: 14px; }
+  .form-section h3 { font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+  .form-group { margin-bottom: 14px; }
+  .form-group:last-child { margin-bottom: 0; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-2); margin-bottom: 6px; }
+  .form-group input, .form-group textarea { width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; outline: none; font-family: inherit; background: var(--bg); color: var(--text); }
+  .form-group input:focus, .form-group textarea:focus { border-color: var(--accent); background: var(--surface); }
+  .form-group textarea { resize: none; height: 72px; }
+  .submit-btn { width: 100%; padding: 15px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 16px; transition: all .15s; }
+  .submit-btn:active { transform: scale(.98); }
+  .submit-btn:disabled { background: #ccc; cursor: not-allowed; }
+  
+  /* ── Track ── */
+  .track-search { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 18px; margin-bottom: 14px; }
+  .track-search h3 { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+  .search-row { display: flex; gap: 8px; }
+  .search-row input { flex: 1; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; outline: none; font-family: inherit; }
+  .search-row input:focus { border-color: var(--accent); }
+  .search-btn { padding: 10px 18px; background: var(--accent); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .track-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 12px; }
+  .track-header { background: var(--bg); padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .track-id { font-family: monospace; font-size: 13px; color: var(--text-2); }
+  .track-body { padding: 14px 16px; }
+  .track-row { display: flex; justify-content: space-between; font-size: 14px; padding: 3px 0; }
+  .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+  .s-待確認 { background: #FEF3C7; color: #92400E; }
+  .s-已確認 { background: #DBEAFE; color: #1E40AF; }
+  .s-已出貨 { background: #D1FAE5; color: #065F46; }
+  .s-已結單 { background: #F3F4F6; color: #6B7280; }
+  .status-steps { display: flex; align-items: center; margin: 14px 0; }
+  .step { flex: 1; text-align: center; }
+  .step-dot { width: 24px; height: 24px; border-radius: 50%; background: var(--border); margin: 0 auto 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; font-weight: 700; }
+  .step-dot.done { background: var(--success); }
+  .step-dot.current { background: var(--accent); }
+  .step-label { font-size: 11px; color: var(--text-2); }
+  .step-line { flex: 1; height: 2px; background: var(--border); margin-top: -14px; }
+  .step-line.done { background: var(--success); }
+  
+  /* ── Success ── */
+  .success-page { text-align: center; padding: 48px 20px; }
+  .success-icon { font-size: 56px; margin-bottom: 16px; }
+  .success-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .success-id { font-family: monospace; color: var(--accent); font-size: 15px; background: var(--accent-light); padding: 8px 16px; border-radius: 8px; display: inline-block; margin: 10px 0; }
+  
+  /* ── Loading ── */
+  .loading { text-align: center; padding: 40px; color: var(--text-2); }
+  .spinner { display: inline-block; width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; margin-bottom: 10px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-top">
+    <div class="store-name" id="store-name">🛒 團購下單</div>
+    <button class="cart-btn" onclick="showTab('cart')">
+      🛒 購物車
+      <span class="cart-count" id="cart-count">0</span>
+    </button>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" id="tab-shop" onclick="showTab('shop')">商品選購</div>
+  <div class="tab" id="tab-cart" onclick="showTab('cart')">訂單結帳</div>
+  <div class="tab" id="tab-track" onclick="showTab('track')">查詢貨況</div>
+</div>
+
+<!-- Shop Page -->
+<div id="page-shop" class="page active section">
+  <div class="loading" id="shop-loading">
+    <div class="spinner"></div>
+    <div>載入商品中...</div>
+  </div>
+  <div id="product-list"></div>
+</div>
+
+<!-- Cart Page -->
+<div id="page-cart" class="page section">
+  <div id="cart-content"></div>
+</div>
+
+<!-- Track Page -->
+<div id="page-track" class="page section">
+  <div class="track-search">
+    <h3>查詢訂單狀態</h3>
+    <div class="search-row">
+      <input id="track-phone" type="tel" placeholder="輸入下單時的手機號碼">
+      <button class="search-btn" onclick="trackOrders()">查詢</button>
+    </div>
+  </div>
+  <div id="track-results"></div>
+</div>
+
+<script>
+// ── Config ────────────────────────────────────────────────
+// ⚠️ 把這裡的網址替換成你的 Google Apps Script 部署網址
+const API_URL = 'https://script.google.com/macros/s/AKfycbxhB-aNOLmM-kZGdx6lhUuCR26HTm4rNhcFoj7NfzZQar9XmWjtEBkzFuKHLTeHjpSN/exec';
+const STORE_NAME = '批發下單區';
+
+let products = [];
+let cart = JSON.parse(sessionStorage.getItem('tg_cart') || '{}');
+
+// ── Init ──────────────────────────────────────────────────
+document.getElementById('store-name').textContent = '🛒 ' + STORE_NAME;
+document.title = STORE_NAME + ' - 團購下單';
+
+async function init() {
+  try {
+    const r = await fetch(`${API_URL}?action=getProducts`);
+    const data = await r.json();
+    products = data.filter(p => p.active);
+    document.getElementById('shop-loading').style.display = 'none';
+    renderProducts();
+  } catch(e) {
+    document.getElementById('shop-loading').innerHTML = '<p style="color:#D85A30">載入失敗，請重新整理頁面</p>';
+  }
+}
+init();
+
+// ── Products ──────────────────────────────────────────────
+function renderProducts() {
+  const list = document.getElementById('product-list');
+  if (!products.length) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-2)">目前暫無商品</div>';
+    return;
+  }
+  list.innerHTML = products.map(p => {
+    const qty = cart[p.id]?.qty || 0;
+    return `
+      <div class="product-item">
+        <div class="product-img">
+          ${p.image
+            ? `<img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=no-img>🛍️</div>'">`
+            : '<div class="no-img">🛍️</div>'}
+        </div>
+        <div class="product-info">
+          <div>
+            <div class="product-name">${p.name}</div>
+            ${p.desc ? `<div class="product-desc">${p.desc}</div>` : ''}
+          </div>
+          <div class="product-price-row">
+            <div><span class="price">NT$${Number(p.price).toLocaleString()}</span><span class="price-unit">/${p.unit||'件'}</span></div>
+            <div class="qty-ctrl">
+              <button class="qty-btn ${qty > 0 ? 'active' : ''}" onclick="changeQty('${p.id}', -1)">−</button>
+              <span class="qty-num" id="qty-${p.id}">${qty}</span>
+              <button class="qty-btn active" onclick="changeQty('${p.id}', 1)">＋</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+  updateCartBadge();
+}
+
+function changeQty(id, delta) {
+  const p = products.find(p => p.id === id);
+  if (!p) return;
+  const cur = cart[id]?.qty || 0;
+  const next = Math.max(0, cur + delta);
+  if (next === 0) {
+    delete cart[id];
+  } else {
+    cart[id] = { name: p.name, price: p.price, unit: p.unit, qty: next, subtotal: p.price * next };
+  }
+  sessionStorage.setItem('tg_cart', JSON.stringify(cart));
+  const el = document.getElementById('qty-' + id);
+  if (el) el.textContent = next;
+  updateCartBadge();
+}
+
+function updateCartBadge() {
+  const total = Object.values(cart).reduce((s, i) => s + i.qty, 0);
+  document.getElementById('cart-count').textContent = total;
+}
+
+// ── Cart ──────────────────────────────────────────────────
+function renderCart() {
+  const items = Object.entries(cart);
+  const container = document.getElementById('cart-content');
+  if (!items.length) {
+    container.innerHTML = `
+      <div class="cart-empty">
+        <div class="emoji">🛒</div>
+        <p style="font-weight:700;margin-bottom:8px">購物車是空的</p>
+        <p>返回商品頁面選購商品</p>
+      </div>`;
+    return;
+  }
+  const total = items.reduce((s, [,i]) => s + i.subtotal, 0);
+  container.innerHTML = `
+    <div>
+      ${items.map(([id, item]) => `
+        <div class="cart-item">
+          <div>
+            <div class="cart-item-name">${item.name}</div>
+            <div class="cart-item-sub">NT$${Number(item.price).toLocaleString()} × ${item.qty} ${item.unit||'件'}</div>
+          </div>
+          <div class="cart-item-right">
+            <div class="cart-item-total">NT$${Number(item.subtotal).toLocaleString()}</div>
+            <button onclick="changeQty('${id}', -item.qty); renderCart()" style="font-size:12px;color:var(--text-2);background:none;border:none;cursor:pointer;margin-top:4px">移除</button>
+          </div>
+        </div>
+      `).join('')}
+      <div class="cart-summary">
+        <div class="summary-row"><span>商品數量</span><span>${items.reduce((s,[,i])=>s+i.qty,0)} 件</span></div>
+        <div class="summary-total"><span>合計</span><span style="color:var(--accent)">NT$${Number(total).toLocaleString()}</span></div>
+      </div>
+    </div>
+    <div class="form-section">
+      <h3>填寫資料</h3>
+      <div class="form-group">
+        <label>姓名 *</label>
+        <input id="f-name" type="text" placeholder="您的姓名">
+      </div>
+      <div class="form-group">
+        <label>手機號碼 * <span style="font-size:11px;color:var(--text-2)">（查詢貨況用）</span></label>
+        <input id="f-phone" type="tel" placeholder="09xxxxxxxx">
+      </div>
+      <div class="form-group">
+        <label>地址（選填）</label>
+        <input id="f-address" type="text" placeholder="如需宅配請填寫">
+      </div>
+      <div class="form-group">
+        <label>備註（選填）</label>
+        <textarea id="f-note" placeholder="特殊需求、取貨方式..."></textarea>
+      </div>
+    </div>
+    <button class="submit-btn" onclick="submitOrder()">確認下單 NT$${Number(total).toLocaleString()}</button>
+    <div style="text-align:center;font-size:12px;color:var(--text-2);margin-top:12px">送出後可至「查詢貨況」追蹤訂單</div>
+  `;
+}
+
+async function submitOrder() {
+  const name = document.getElementById('f-name').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  const address = document.getElementById('f-address')?.value.trim() || '';
+  const note = document.getElementById('f-note')?.value.trim() || '';
+  if (!name) { alert('請填入姓名'); return; }
+  if (!phone || !/^09\d{8}$/.test(phone)) { alert('請填入正確的手機號碼（09開頭10位數）'); return; }
+  
+  const btn = document.querySelector('.submit-btn');
+  btn.disabled = true;
+  btn.textContent = '送出中...';
+  
+  const items = Object.values(cart);
+  const total = items.reduce((s, i) => s + i.subtotal, 0);
+  
+  try {
+    const r = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'placeOrder', customerName: name, phone, address, note, items, total })
+    });
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+    
+    cart = {};
+    sessionStorage.removeItem('tg_cart');
+    updateCartBadge();
+    
+    document.getElementById('cart-content').innerHTML = `
+      <div class="success-page">
+        <div class="success-icon">🎉</div>
+        <div class="success-title">下單成功！</div>
+        <p style="color:var(--text-2);margin-bottom:12px">您的訂單已送出</p>
+        <div class="success-id">${data.orderId}</div>
+        <p style="font-size:13px;color:var(--text-2);margin-top:16px">請記錄訂單編號，或用手機號碼在「查詢貨況」查詢訂單狀態</p>
+        <button onclick="showTab('track')" style="margin-top:20px;padding:12px 24px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">查詢訂單狀態</button>
+      </div>`;
+  } catch(e) {
+    alert('下單失敗：' + e.message);
+    btn.disabled = false;
+    btn.textContent = '確認下單';
+  }
+}
+
+// ── Track ──────────────────────────────────────────────────
+async function trackOrders() {
+  const phone = document.getElementById('track-phone').value.trim();
+  if (!phone) { alert('請輸入手機號碼'); return; }
+  const r = document.getElementById('track-results');
+  r.innerHTML = '<div class="loading"><div class="spinner"></div><div>查詢中...</div></div>';
+  try {
+    const res = await fetch(`${API_URL}?action=getOrdersByPhone&phone=${encodeURIComponent(phone)}`);
+    const orders = await res.json();
+    if (!orders.length) {
+      r.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-2)">查無訂單，請確認手機號碼是否正確</div>';
+      return;
+    }
+    r.innerHTML = orders.sort((a,b) => b.id.localeCompare(a.id)).map(o => {
+      const steps = ['待確認','已確認','已出貨','已結單'];
+      const cur = steps.indexOf(o.status);
+      const items = (o.items || []).map(i => `<div class="track-row"><span>${i.name} ×${i.qty}</span><span>NT$${Number(i.subtotal).toLocaleString()}</span></div>`).join('');
+      return `
+        <div class="track-card">
+          <div class="track-header">
+            <span class="track-id">${o.id}</span>
+            <span class="status-badge s-${o.status}">${o.status}</span>
+          </div>
+          <div class="track-body">
+            <div style="display:flex;align-items:center;margin-bottom:14px">
+              ${steps.map((s, i) => `
+                ${i > 0 ? `<div class="step-line ${i <= cur ? 'done' : ''}"></div>` : ''}
+                <div class="step">
+                  <div class="step-dot ${i < cur ? 'done' : i === cur ? 'current' : ''}">${i < cur ? '✓' : i+1}</div>
+                  <div class="step-label">${s}</div>
+                </div>
+              `).join('')}
+            </div>
+            ${items}
+            <div class="track-row" style="font-weight:700;border-top:1px solid var(--border);margin-top:8px;padding-top:8px">
+              <span>合計</span><span style="color:var(--accent)">NT$${Number(o.total).toLocaleString()}</span>
+            </div>
+            ${o.note ? `<div style="font-size:12px;color:var(--text-2);margin-top:8px">備註：${o.note}</div>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    r.innerHTML = `<div style="text-align:center;padding:32px;color:var(--accent)">查詢失敗：${e.message}</div>`;
+  }
+}
+
+// ── Tabs ──────────────────────────────────────────────────
+function showTab(name) {
+  ['shop','cart','track'].forEach(t => {
+    document.getElementById('page-' + t).classList.toggle('active', t === name);
+    document.getElementById('tab-' + t).classList.toggle('active', t === name);
+  });
+  if (name === 'cart') renderCart();
+}
+</script>
+</body>
+</html>
