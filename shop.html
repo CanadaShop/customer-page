@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>批發商城</title>
+<style>
+:root{
+  --bg:#F8F6F2;--surface:#FFF;--border:#E8E3DC;--text:#1A1814;--text2:#7A7570;
+  --accent:#C8430A;--accent-l:#FEF0EB;--success:#1A9E70;--success-l:#E8FDF5;
+  --warn:#B87010;--info:#1858A0;--r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);font-size:15px;max-width:480px;margin:0 auto;min-height:100vh}
+
+/* Header */
+.hd{background:var(--surface);padding:14px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between}
+.hd-logo{font-size:16px;font-weight:700}
+.hd-right{display:flex;align-items:center;gap:8px}
+.cart-btn{background:var(--accent);color:#fff;border:none;border-radius:50px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px}
+.cart-cnt{background:#fff;color:var(--accent);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.user-btn{background:var(--bg);border:1px solid var(--border);border-radius:50px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text2)}
+
+/* Tabs */
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border)}
+.tab{flex:1;padding:11px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* Pages */
+.pg{display:none;padding:14px}.pg.on{display:block}
+
+/* Auth */
+.auth-box{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:24px;margin-top:8px}
+.auth-box h2{font-size:17px;font-weight:700;margin-bottom:6px}
+.auth-box p{font-size:13px;color:var(--text2);margin-bottom:20px}
+.fr{margin-bottom:14px}
+.fr label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:5px}
+.fr input,.fr textarea,.fr select{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;outline:none;font-family:inherit;background:var(--surface);color:var(--text)}
+.fr input:focus,.fr textarea:focus{border-color:var(--accent)}
+.fr textarea{resize:none;min-height:64px}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.submit-btn{width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer;transition:all .12s}
+.submit-btn:active{transform:scale(.98)}
+.submit-btn:disabled{background:#ccc;cursor:not-allowed}
+.alt-link{text-align:center;font-size:13px;color:var(--text2);margin-top:14px;cursor:pointer}
+.alt-link span{color:var(--accent);font-weight:600}
+.auth-notice{background:var(--accent-l);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--accent);margin-top:14px}
+
+/* Product list */
+.prod-item{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);margin-bottom:12px;display:flex;align-items:stretch;overflow:hidden}
+.prod-img{width:96px;min-height:96px;flex-shrink:0;background:var(--bg);overflow:hidden}
+.prod-img img{width:100%;height:100%;object-fit:cover}
+.prod-img .no-img{width:100%;height:100%;min-height:96px;display:flex;align-items:center;justify-content:center;font-size:26px}
+.prod-info{flex:1;padding:12px}
+.prod-name{font-weight:700;font-size:15px;line-height:1.3}
+.prod-desc{color:var(--text2);font-size:12px;margin-top:3px;line-height:1.5}
+.prod-prices{margin-top:8px}
+.price-row{display:flex;justify-content:space-between;font-size:13px;padding:2px 0}
+.price-row .lv{color:var(--text2);font-size:12px}
+.price-row .pr{color:var(--accent);font-weight:700}
+.prod-specs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.spec-chip{padding:4px 10px;border-radius:20px;border:1.5px solid var(--border);font-size:12px;cursor:pointer;transition:all .12s;background:var(--surface)}
+.spec-chip.on{border-color:var(--accent);background:var(--accent-l);color:var(--accent);font-weight:700}
+.qty-row{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.qty-ctrl{display:flex;align-items:center;gap:8px}
+.qty-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;transition:all .1s}
+.qty-btn:active{transform:scale(.88)}
+.qty-btn.on{border-color:var(--accent);color:var(--accent)}
+.qty-n{font-weight:700;min-width:18px;text-align:center}
+.add-btn{background:var(--accent);color:#fff;border:none;border-radius:50px;padding:6px 16px;font-size:13px;font-weight:600;cursor:pointer}
+.out-badge{background:#EF4444;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;display:inline-block}
+
+/* Single product page */
+.sp-img{width:100%;height:220px;background:var(--bg);overflow:hidden;border-radius:var(--r);margin-bottom:12px}
+.sp-img img{width:100%;height:100%;object-fit:cover}
+.sp-name{font-size:20px;font-weight:700;margin-bottom:6px}
+.sp-desc{color:var(--text2);font-size:13px;line-height:1.7;margin-bottom:12px}
+
+/* Cart */
+.cart-empty{text-align:center;padding:48px 20px;color:var(--text2)}
+.cart-empty .emo{font-size:44px;margin-bottom:10px}
+.cart-item{background:var(--surface);border-radius:10px;padding:12px 14px;margin-bottom:10px;border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ci-left .ci-name{font-weight:600;font-size:14px}
+.ci-left .ci-spec{color:var(--text2);font-size:12px;margin-top:2px}
+.ci-right{text-align:right}
+.ci-total{font-weight:700;color:var(--accent);font-size:14px}
+.ci-remove{font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer;margin-top:3px;display:block;text-align:right}
+.cart-summary{background:var(--surface);border-radius:11px;border:1px solid var(--border);padding:14px;margin-top:4px}
+.sum-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0}
+.sum-total{display:flex;justify-content:space-between;font-size:16px;font-weight:700;border-top:1px solid var(--border);padding-top:10px;margin-top:8px}
+.form-box{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:16px;margin-top:12px}
+.form-box h3{font-size:14px;font-weight:700;margin-bottom:14px}
+
+/* Track */
+.track-card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;margin-bottom:12px}
+.track-hd{background:var(--bg);padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.track-id{font-family:monospace;font-size:12px;color:var(--text2)}
+.track-body{padding:12px 14px}
+.track-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0}
+.status-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.s-待確認{background:#FEF3C7;color:#92400E}
+.s-已確認{background:#DBEAFE;color:#1E40AF}
+.s-已出貨{background:#D1FAE5;color:#065F46}
+.s-已結單{background:#F3F4F6;color:#6B7280}
+.steps{display:flex;align-items:flex-start;margin:12px 0}
+.step{flex:1;text-align:center}
+.step-dot{width:22px;height:22px;border-radius:50%;background:var(--border);margin:0 auto 4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700}
+.step-dot.done{background:var(--success)}
+.step-dot.cur{background:var(--accent)}
+.step-lbl{font-size:10px;color:var(--text2)}
+.step-line{flex:1;height:2px;background:var(--border);margin-top:11px}
+.step-line.done{background:var(--success)}
+
+/* Success */
+.success-pg{text-align:center;padding:44px 20px}
+.success-pg .emo{font-size:52px;margin-bottom:14px}
+.success-pg h2{font-size:19px;font-weight:700;margin-bottom:8px}
+.oid{font-family:monospace;color:var(--accent);font-size:14px;background:var(--accent-l);padding:8px 14px;border-radius:8px;display:inline-block;margin:10px 0}
+.ghost-btn{width:100%;padding:12px;background:transparent;border:1.5px solid var(--border);color:var(--text);border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;font-family:inherit}
+
+/* Member info bar */
+.member-bar{background:var(--accent-l);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px;display:flex;align-items:center;justify-content:space-between}
+.member-bar .lv{font-weight:700;color:var(--accent)}
+
+/* Loading */
+.loading{text-align:center;padding:36px;color:var(--text2)}
+.spin{display:inline-block;width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Header -->
+<div class="hd">
+  <div class="hd-logo" id="store-title">🏪 批發商城</div>
+  <div class="hd-right">
+    <div id="hd-user" style="display:none">
+      <button class="user-btn" id="user-name-btn" onclick="showTab('shop')"></button>
+    </div>
+    <button class="cart-btn" id="cart-btn" style="display:none" onclick="showTab('cart')">
+      🛒 <span class="cart-cnt" id="cart-cnt">0</span>
+    </button>
+    <button class="user-btn" id="login-btn" onclick="showTab('auth')">登入</button>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs" id="main-tabs" style="display:none">
+  <div class="tab on" id="tab-shop" onclick="showTab('shop')">商城</div>
+  <div class="tab" id="tab-cart" onclick="showTab('cart')">購物車</div>
+  <div class="tab" id="tab-track" onclick="showTab('track')">查詢訂單</div>
+</div>
+
+<!-- Auth Page -->
+<div class="pg on" id="pg-auth">
+  <div id="auth-login">
+    <div class="auth-box">
+      <h2>會員登入</h2>
+      <p>此為私密商城，需通過審核的會員才能下單</p>
+      <div class="fr"><label>信箱</label><input id="l-email" type="email" placeholder="your@email.com"></div>
+      <div class="fr"><label>密碼</label><input id="l-pw" type="password" placeholder="請輸入密碼"></div>
+      <button class="submit-btn" onclick="doLogin()">登入</button>
+      <div class="alt-link" onclick="switchAuth('register')">還沒有帳號？<span>申請加入</span></div>
+    </div>
+  </div>
+  <div id="auth-register" style="display:none">
+    <div class="auth-box">
+      <h2>申請加入</h2>
+      <p>填寫資料後送出申請，審核通過後會通知您</p>
+      <div class="fr"><label>姓名 *</label><input id="r-name" placeholder="真實姓名"></div>
+      <div class="fr"><label>LINE ID *</label><input id="r-line" placeholder="請輸入您的 LINE ID"></div>
+      <div class="fr"><label>信箱 * <span style="font-size:11px;color:var(--text2)">（登入用）</span></label><input id="r-email" type="email" placeholder="your@email.com"></div>
+      <div class="fr"><label>手機號碼 <span style="font-size:11px;color:var(--text2)">（選填）</span></label><input id="r-phone" type="tel" placeholder="09xxxxxxxx"></div>
+      <div class="fr"><label>密碼 *</label><input id="r-pw" type="password" placeholder="至少6位數"></div>
+      <button class="submit-btn" onclick="doRegister()">送出申請</button>
+      <div class="alt-link" onclick="switchAuth('login')">已有帳號？<span>直接登入</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Shop Page -->
+<div class="pg" id="pg-shop">
+  <div id="member-bar-wrap"></div>
+  <div id="shop-single" style="display:none"></div>
+  <div id="product-list">
+    <div class="loading"><div class="spin"></div><div>載入商品中...</div></div>
+  </div>
+</div>
+
+<!-- Cart Page -->
+<div class="pg" id="pg-cart">
+  <div id="cart-content"></div>
+</div>
+
+<!-- Track Page -->
+<div class="pg" id="pg-track">
+  <div id="track-content">
+    <div style="text-align:center;padding:32px;color:var(--text2)">載入訂單中...</div>
+  </div>
+</div>
+
+<script>
+// ── Config ─────────────────────────────────────────────────
+// ⚠️ 替換成你的 Apps Script 部署網址
+const API = 'https://script.google.com/macros/s/AKfycbxhB-aNOLmM-kZGdx6lhUuCR26HTm4rNhcFoj7NfzZQar9XmWjtEBkzFuKHLTeHjpSN/exec';
+const STORE_NAME = '批發商城';
+
+document.getElementById('store-title').textContent = '🏪 ' + STORE_NAME;
+document.title = STORE_NAME;
+
+// ── State ─────────────────────────────────────────────────
+let member = null;
+let products = [];
+let cart = {};
+let singleProductId = null;
+
+// ── Init ──────────────────────────────────────────────────
+window.onload = async () => {
+  // 檢查 URL 有沒有單品連結
+  const params = new URLSearchParams(location.search);
+  singleProductId = params.get('product');
+
+  // 檢查 session
+  const saved = sessionStorage.getItem('ws_member');
+  if (saved) {
+    member = JSON.parse(saved);
+    onLoggedIn();
+  }
+
+  if (member || singleProductId) {
+    await loadProducts();
+    if (singleProductId) showSingleProduct(singleProductId);
+  }
+};
+
+async function loadProducts() {
+  try {
+    const level = member?.level || 'retail';
+    const u = new URL(API);
+    u.searchParams.set('action', 'getProducts');
+    u.searchParams.set('level', level);
+    const r = await fetch(u.toString());
+    products = await r.json();
+    if (!Array.isArray(products)) products = [];
+    products = products.filter(p => p.active);
+    renderProducts();
+  } catch(e) {
+    document.getElementById('product-list').innerHTML = '<p style="text-align:center;padding:32px;color:var(--accent)">載入失敗，請重新整理</p>';
+  }
+}
+
+// ── Auth ──────────────────────────────────────────────────
+function switchAuth(mode) {
+  document.getElementById('auth-login').style.display = mode==='login' ? '' : 'none';
+  document.getElementById('auth-register').style.display = mode==='register' ? '' : 'none';
+}
+
+async function doLogin() {
+  const phone = document.getElementById('l-phone').value.trim();
+  const pw = document.getElementById('l-pw').value;
+  if (!phone || !pw) { alert('請填入手機號碼和密碼'); return; }
+  try {
+    // 登入用 POST 直接送，避免 GET URL encoding 搞壞密碼 hash
+    const r = await postDirect({ action:'login', phone, password: pw });
+    member = r.member;
+    sessionStorage.setItem('ws_member', JSON.stringify(member));
+    onLoggedIn();
+    await loadProducts();
+    showTab('shop');
+  } catch(e) { alert(e.message); }
+}
+
+async function doRegister() {
+  const name = document.getElementById('r-name').value.trim();
+  const lineId = document.getElementById('r-line').value.trim();
+  const email = document.getElementById('r-email').value.trim();
+  const phone = document.getElementById('r-phone').value.trim();
+  const pw = document.getElementById('r-pw').value;
+  if (!name) { alert('請填入姓名'); return; }
+  if (!lineId) { alert('請填入 LINE ID'); return; }
+  if (!email || !email.includes('@')) { alert('請填入正確的信箱'); return; }
+  if (pw.length < 6) { alert('密碼至少6位數'); return; }
+  try {
+    const passwordHash = await sha256hex(pw);
+    await postDirect({ action:'register', name, lineId, email, phone, passwordHash });
+    document.getElementById('auth-register').innerHTML = `
+      <div class="auth-box">
+        <div style="text-align:center;padding:20px 0">
+          <div style="font-size:48px;margin-bottom:12px">📋</div>
+          <h2>申請已送出！</h2>
+          <p style="margin-top:8px;color:var(--text2)">我們會盡快審核，<br>通過後會透過 LINE 通知您</p>
+        </div>
+      </div>`;
+  } catch(e) { alert('申請失敗：'+e.message); }
+}
+
+function onLoggedIn() {
+  document.getElementById('login-btn').style.display = 'none';
+  document.getElementById('hd-user').style.display = '';
+  document.getElementById('cart-btn').style.display = '';
+  document.getElementById('main-tabs').style.display = 'flex';
+  document.getElementById('user-name-btn').textContent = member.name + ' ▸';
+
+  const levelMap = { A:'批發A', B:'批發B', C:'批發C', retail:'零售' };
+  document.getElementById('member-bar-wrap').innerHTML = `
+    <div class="member-bar">
+      <span>👤 ${member.name}</span>
+      <span class="lv">${levelMap[member.level]||member.level}</span>
+      <span style="cursor:pointer;color:var(--text2)" onclick="logout()">登出</span>
+    </div>`;
+}
+
+function logout() {
+  sessionStorage.removeItem('ws_member');
+  member = null;
+  products = [];
+  cart = {};
+  document.getElementById('login-btn').style.display = '';
+  document.getElementById('hd-user').style.display = 'none';
+  document.getElementById('cart-btn').style.display = 'none';
+  document.getElementById('main-tabs').style.display = 'none';
+  document.getElementById('member-bar-wrap').innerHTML = '';
+  showTab('auth');
+  switchAuth('login');
+}
+
+// ── Products ──────────────────────────────────────────────
+function renderProducts() {
+  const list = document.getElementById('product-list');
+  document.getElementById('shop-single').style.display = 'none';
+  if (!products.length) { list.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text2)">目前暫無商品</p>'; return; }
+  list.innerHTML = products.map(p => renderProductItem(p)).join('');
+  updateCartBadge();
+}
+
+function renderProductItem(p) {
+  const levelMap = { priceA:'批發A', priceB:'批發B', priceC:'批發C', priceRetail:'零售' };
+  const priceKeys = ['priceA','priceB','priceC','priceRetail'].filter(k => p[k]);
+  const pricesHtml = priceKeys.map(k=>`
+    <div class="price-row">
+      <span class="lv">${levelMap[k]}</span>
+      <span class="pr">NT$${num(p[k])}</span>
+    </div>`).join('');
+
+  // 決定此會員的價格
+  const myPriceKey = member ? ({A:'priceA',B:'priceB',C:'priceC',retail:'priceRetail'}[member.level]) : null;
+  const myPrice = myPriceKey ? p[myPriceKey] : null;
+
+  // Support new multi-group spec format
+  const specs = p.specs || [];
+  const isMultiGroup = specs.length > 0 && typeof specs[0] === 'object' && specs[0].name !== undefined;
+  let specsHtml = '';
+  if (isMultiGroup) {
+    specsHtml = specs.map((g,gi) => `
+      <div style="margin-top:8px">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px">${g.name} <span style="color:var(--accent)">*必選</span></div>
+        <div class="prod-specs" id="specs-${p.id}-${gi}">
+          ${g.options.map(o=>`<div class="spec-chip" onclick="selectSpecGroup('${p.id}',${gi},'${o}',this)">${o}</div>`).join('')}
+        </div>
+      </div>`).join('');
+  } else if (specs.length) {
+    // legacy flat
+    specsHtml = `<div class="prod-specs" id="specs-${p.id}">
+      ${specs.map(s=>`<div class="spec-chip" onclick="selectSpec('${p.id}','${s}',this)">${s}</div>`).join('')}
+    </div>`;
+  }
+
+  return `<div class="prod-item" id="pitem-${p.id}">
+    <div class="prod-img">
+      ${p.image?`<img src="${p.image}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=no-img>🛍️</div>'">`:'<div class="no-img">🛍️</div>'}
+    </div>
+    <div class="prod-info">
+      <div class="prod-name">${p.name}</div>
+      ${p.desc?`<div class="prod-desc">${p.desc}</div>`:''}
+      <div class="prod-prices">${pricesHtml}</div>
+      ${specsHtml}
+      ${p.inStock ? (myPrice ? `
+        <div class="qty-row">
+          <div class="qty-ctrl">
+            <button class="qty-btn" onclick="changeQty('${p.id}',-1)">−</button>
+            <span class="qty-n" id="qn-${p.id}">0</span>
+            <button class="qty-btn on" onclick="changeQty('${p.id}',1)">＋</button>
+          </div>
+          <button class="add-btn" onclick="addToCart('${p.id}')">加入購物車</button>
+        </div>` : '<p style="font-size:12px;color:var(--text2);margin-top:8px">請登入查看可購買價格</p>')
+      : '<div style="margin-top:8px"><span class="out-badge">斷貨中</span></div>'}
+    </div>
+  </div>`;
+}
+
+function showSingleProduct(productId) {
+  const p = products.find(p=>p.id===productId);
+  if (!p) return;
+  document.getElementById('product-list').style.display = 'none';
+  const single = document.getElementById('shop-single');
+  single.style.display = '';
+  const levelMap = { priceA:'批發A', priceB:'批發B', priceC:'批發C', priceRetail:'零售' };
+  const priceKeys = ['priceA','priceB','priceC','priceRetail'].filter(k => p[k]);
+  single.innerHTML = `
+    <div>
+      ${p.image?`<div class="sp-img"><img src="${p.image}" onerror="this.parentElement.style.display='none'"></div>`:''}
+      <div class="sp-name">${p.name}</div>
+      ${p.desc?`<div class="sp-desc">${p.desc}</div>`:''}
+      <div style="background:var(--surface);border-radius:11px;border:1px solid var(--border);padding:14px;margin-bottom:12px">
+        ${priceKeys.map(k=>`<div class="price-row" style="padding:5px 0"><span class="lv">${levelMap[k]}</span><span class="pr" style="font-size:15px">NT$${num(p[k])}</span></div>`).join('')}
+      </div>
+      ${!member ? `<div class="auth-notice">請先登入會員才能下單</div><button class="submit-btn" style="margin-top:12px" onclick="showTab('auth')">登入 / 申請加入</button>` : renderProductItem(p).replace(/.*prod-item.*\n/,'')}
+    </div>`;
+  document.getElementById('pg-shop').classList.add('on');
+}
+
+let selectedSpecs = {};
+let selectedSpecGroups = {};
+
+function selectSpec(productId, spec, el) {
+  selectedSpecs[productId] = spec;
+  const container = el?.closest('.prod-specs');
+  container?.querySelectorAll('.spec-chip').forEach(c => c.classList.remove('on'));
+  el?.classList.add('on');
+}
+
+function selectSpecGroup(productId, groupIdx, option, el) {
+  if (!selectedSpecGroups[productId]) selectedSpecGroups[productId] = {};
+  selectedSpecGroups[productId][groupIdx] = option;
+  const container = el?.closest('.prod-specs');
+  container?.querySelectorAll('.spec-chip').forEach(c => c.classList.remove('on'));
+  el?.classList.add('on');
+}
+
+let qtyMap = {};
+function changeQty(productId, delta) {
+  qtyMap[productId] = Math.max(0, (qtyMap[productId]||0) + delta);
+  const el = document.getElementById('qn-'+productId);
+  if (el) el.textContent = qtyMap[productId];
+}
+
+function addToCart(productId) {
+  const p = products.find(p=>p.id===productId);
+  if (!p || !member) return;
+  const qty = qtyMap[productId] || 1;
+  const myPriceKey = {A:'priceA',B:'priceB',C:'priceC',retail:'priceRetail'}[member.level];
+  const price = p[myPriceKey] || 0;
+
+  // Build spec string — validate all groups selected
+  const specs = p.specs || [];
+  const isMultiGroup = specs.length > 0 && typeof specs[0] === 'object' && specs[0].name !== undefined;
+  let specStr = '';
+  if (isMultiGroup) {
+    const sel = selectedSpecGroups[productId] || {};
+    const missing = specs.filter((g,i) => !sel[i]);
+    if (missing.length) {
+      alert('請選擇：' + missing.map(g=>g.name).join('、'));
+      return;
+    }
+    specStr = specs.map((g,i) => g.name + '：' + sel[i]).join(' / ');
+  } else {
+    specStr = selectedSpecs[productId] || '';
+    if (specs.length && !specStr) {
+      alert('請選擇規格');
+      return;
+    }
+  }
+
+  const key = productId + (specStr ? '_' + specStr : '');
+  if (cart[key]) {
+    cart[key].qty += qty;
+    cart[key].subtotal = cart[key].qty * price;
+  } else {
+    cart[key] = { productId, name: p.name, spec: specStr, qty, price, subtotal: qty*price, cost: p.cost||0 };
+  }
+  qtyMap[productId] = 0;
+  const el = document.getElementById('qn-'+productId);
+  if (el) el.textContent = 0;
+  updateCartBadge();
+  const btn = document.querySelector(`#pitem-${productId} .add-btn`);
+  if (btn) { btn.textContent = '✓ 已加入'; setTimeout(()=>btn.textContent='加入購物車', 1200); }
+}
+
+function updateCartBadge() {
+  const total = Object.values(cart).reduce((s,i)=>s+i.qty, 0);
+  document.getElementById('cart-cnt').textContent = total;
+}
+
+// ── Cart ──────────────────────────────────────────────────
+function renderCart() {
+  const items = Object.entries(cart);
+  const container = document.getElementById('cart-content');
+  if (!items.length) {
+    container.innerHTML = `<div class="cart-empty"><div class="emo">🛒</div><p style="font-weight:700;margin-bottom:6px">購物車是空的</p><p style="font-size:13px">回商城選購商品</p></div>`;
+    return;
+  }
+  const total = items.reduce((s,[,i])=>s+i.subtotal, 0);
+  container.innerHTML = `
+    <div>
+      ${items.map(([key,item])=>`
+        <div class="cart-item">
+          <div class="ci-left">
+            <div class="ci-name">${item.name}</div>
+            ${item.spec?`<div class="ci-spec">${item.spec}</div>`:''}
+            <div class="ci-spec">NT$${num(item.price)} × ${item.qty}</div>
+          </div>
+          <div class="ci-right">
+            <div class="ci-total">NT$${num(item.subtotal)}</div>
+            <button class="ci-remove" onclick="removeCart('${key}')">移除</button>
+          </div>
+        </div>`).join('')}
+      <div class="cart-summary">
+        <div class="sum-row"><span>共 ${items.reduce((s,[,i])=>s+i.qty,0)} 件商品</span></div>
+        <div class="sum-total"><span>合計</span><span style="color:var(--accent)">NT$${num(total)}</span></div>
+      </div>
+    </div>
+    <div class="form-box">
+      <h3>確認下單資訊</h3>
+      <div class="fr"><label>姓名</label><input id="co-name" value="${member?.name||''}" readonly style="background:var(--bg)"></div>
+      <div class="fr"><label>手機號碼</label><input id="co-phone" value="${member?.phone||''}" readonly style="background:var(--bg)"></div>
+      <div class="fr"><label>備註（特殊需求、取貨方式）</label><textarea id="co-note"></textarea></div>
+    </div>
+    <button class="submit-btn" style="margin-top:14px" onclick="submitOrder()">確認下單 NT$${num(total)}</button>
+    <div style="text-align:center;font-size:12px;color:var(--text2);margin-top:10px">下單後可至「查詢訂單」追蹤狀態</div>`;
+}
+
+function removeCart(key) {
+  delete cart[key];
+  updateCartBadge();
+  renderCart();
+}
+
+async function submitOrder() {
+  if (!member) { alert('請先登入'); return; }
+  const items = Object.values(cart);
+  if (!items.length) { alert('購物車是空的'); return; }
+  const total = items.reduce((s,i)=>s+i.subtotal, 0);
+  const btn = document.querySelector('#cart-content .submit-btn');
+  btn.disabled = true; btn.textContent = '送出中...';
+  try {
+    const r = await post({
+      action: 'placeOrder',
+      memberId: member.id, memberName: member.name,
+      memberPhone: member.phone, memberLineId: member.lineId||'',
+      memberLevel: member.level, items, total,
+      note: document.getElementById('co-note')?.value||''
+    });
+    cart = {};
+    updateCartBadge();
+    document.getElementById('cart-content').innerHTML = `
+      <div class="success-pg">
+        <div class="emo">🎉</div>
+        <h2>下單成功！</h2>
+        <p style="color:var(--text2);margin-bottom:8px">您的訂單已送出</p>
+        <div class="oid">${r.orderId}</div>
+        <p style="font-size:13px;color:var(--text2);margin-top:12px">可至「查詢訂單」頁面追蹤出貨狀態</p>
+        <button class="ghost-btn" onclick="showTab('track')">查詢訂單狀態</button>
+        <button class="ghost-btn" onclick="showTab('shop')">繼續選購</button>
+      </div>`;
+  } catch(e) {
+    alert('下單失敗：'+e.message);
+    btn.disabled = false; btn.textContent = `確認下單 NT$${num(total)}`;
+  }
+}
+
+// ── Track ─────────────────────────────────────────────────
+async function loadTrack() {
+  if (!member) return;
+  const container = document.getElementById('track-content');
+  container.innerHTML = '<div class="loading"><div class="spin"></div><div>查詢中...</div></div>';
+  try {
+    const u = new URL(API);
+    u.searchParams.set('action','getOrdersByMember');
+    u.searchParams.set('memberId', member.id);
+    const r = await fetch(u.toString());
+    const orders = await r.json();
+    if (!orders.length) { container.innerHTML = '<p style="text-align:center;padding:32px;color:var(--text2)">尚無訂單記錄</p>'; return; }
+    const steps = ['待確認','已確認','已出貨','已結單'];
+    container.innerHTML = orders.sort((a,b)=>b.id.localeCompare(a.id)).map(o=>{
+      const cur = steps.indexOf(o.status);
+      return `<div class="track-card">
+        <div class="track-hd">
+          <span class="track-id">${o.id}</span>
+          <span class="status-badge s-${o.status}">${o.status}</span>
+        </div>
+        <div class="track-body">
+          <div class="steps">
+            ${steps.map((s,i)=>`
+              ${i>0?`<div class="step-line ${i<=cur?'done':''}"></div>`:''}
+              <div class="step">
+                <div class="step-dot ${i<cur?'done':i===cur?'cur':''}">${i<cur?'✓':i+1}</div>
+                <div class="step-lbl">${s}</div>
+              </div>`).join('')}
+          </div>
+          ${(o.items||[]).map(i=>`
+            <div class="track-row">
+              <span>${i.name}${i.spec?' · '+i.spec:''} ×${i.qty}</span>
+              <span>NT$${num(i.subtotal||i.price*i.qty)}</span>
+            </div>`).join('')}
+          <div class="track-row" style="font-weight:700;border-top:1px solid var(--border);margin-top:8px;padding-top:8px">
+            <span>合計</span><span style="color:var(--accent)">NT$${num(o.total)}</span>
+          </div>
+          ${o.note?`<div style="font-size:12px;color:var(--text2);margin-top:6px">備註：${o.note}</div>`:''}
+          <div style="font-size:11px;color:var(--text2);margin-top:4px">${o.createdAt||''}</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    container.innerHTML = `<p style="text-align:center;padding:32px;color:var(--accent)">載入失敗：${e.message}</p>`;
+  }
+}
+
+// ── Utils ─────────────────────────────────────────────────
+function showTab(name) {
+  if (!member && (name==='shop'||name==='cart'||name==='track')) {
+    name = 'auth';
+  }
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.getElementById('pg-'+name)?.classList.add('on');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('tab-'+name)?.classList.add('on');
+  if (name==='cart') renderCart();
+  if (name==='track') loadTrack();
+  if (name==='shop' && products.length && !singleProductId) {
+    document.getElementById('product-list').style.display='';
+    document.getElementById('shop-single').style.display='none';
+  }
+}
+
+async function post(body) {
+  const u = new URL(API);
+  u.searchParams.set('action', body.action);
+  u.searchParams.set('payload', JSON.stringify(body));
+  const r = await fetch(u.toString());
+  const d = await r.json();
+  if (d.error) throw new Error(d.error);
+  return d;
+}
+
+async function postDirect(body) {
+  // 先嘗試 POST，失敗則 fallback 到 GET
+  try {
+    const r = await fetch(API, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: { 'Content-Type': 'text/plain' }
+    });
+    const text = await r.text();
+    if (text.trim().startsWith('<')) throw new Error('NOT_JSON');
+    const d = JSON.parse(text);
+    if (d.error) throw new Error(d.error);
+    return d;
+  } catch(e) {
+    if (e.message === 'NOT_JSON' || e.message.includes('JSON') || e.message.includes('fetch')) {
+      // Fallback: GET with payload
+      const u = new URL(API);
+      u.searchParams.set('action', body.action);
+      u.searchParams.set('payload', JSON.stringify(body));
+      const r2 = await fetch(u.toString());
+      const d2 = await r2.json();
+      if (d2.error) throw new Error(d2.error);
+      return d2;
+    }
+    throw e;
+  }
+}
+
+function num(n){ return Number(n||0).toLocaleString(); }
+
+// SHA-256 hex hash（前端做，避免 base64 URL encoding 問題）
+async function sha256hex(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+</script>
+</body>
+</html>
