@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>批發商城後台</title>
+<style>
+:root {
+  --bg:#F5F4F0;--surface:#FFF;--border:#E4E0D8;--text:#1A1814;--text2:#6B6760;
+  --accent:#C8430A;--accent2:#F0997B;--success:#1A9E70;--warn:#B87010;--info:#1858A0;
+  --r:10px;--sh:0 1px 4px rgba(0,0,0,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+a{color:inherit;text-decoration:none}
+
+/* Layout */
+.sb{position:fixed;left:0;top:0;bottom:0;width:200px;background:#1A1814;display:flex;flex-direction:column;z-index:100;overflow-y:auto}
+.sb-logo{padding:20px 16px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-logo h1{color:#fff;font-size:15px;font-weight:700}
+.sb-logo p{color:rgba(255,255,255,.35);font-size:11px;margin-top:2px}
+.sb nav{padding:8px 0;flex:1}
+.nb{display:flex;align-items:center;gap:8px;padding:9px 16px;color:rgba(255,255,255,.5);cursor:pointer;font-size:13px;transition:all .12s;border-left:3px solid transparent}
+.nb:hover{color:#fff;background:rgba(255,255,255,.05)}
+.nb.on{color:#fff;background:rgba(255,255,255,.07);border-left-color:var(--accent)}
+.nb .badge{margin-left:auto;background:var(--accent);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700}
+.main{margin-left:200px;min-height:100vh;padding:28px 28px 40px}
+
+/* Common */
+.pg{display:none}.pg.on{display:block}
+.pg-title{font-size:20px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:20px}
+.card+.card{margin-top:16px}
+.card-title{font-size:14px;font-weight:700;margin-bottom:14px;color:var(--text2)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .12s;font-family:inherit}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:#A83508}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}.btn-ghost:hover{background:var(--bg)}
+.btn-success{background:#D1FAE5;color:#065F46}.btn-danger{background:#FEE2E2;color:#991B1B}
+.btn-info{background:#DBEAFE;color:#1E3A8A}.btn-warn{background:#FEF3C7;color:#92400E}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-xs{padding:3px 8px;font-size:11px}
+
+/* Tags */
+.tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.tag-A{background:#FEF3C7;color:#78350F}
+.tag-B{background:#DBEAFE;color:#1E3A8A}
+.tag-C{background:#D1FAE5;color:#065F46}
+.tag-retail{background:#F3F4F6;color:#374151}
+.tag-pending{background:#FEF9C3;color:#854D0E}
+.tag-approved{background:#DCFCE7;color:#166534}
+.tag-rejected{background:#FEE2E2;color:#991B1B}
+.tag-ord-pending{background:#FEF3C7;color:#92400E}
+.tag-ord-confirmed{background:#DBEAFE;color:#1E40AF}
+.tag-ord-shipped{background:#D1FAE5;color:#065F46}
+.tag-ord-closed{background:#F3F4F6;color:#6B7280}
+
+/* Stats Grid */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.stat{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:16px}
+.stat-label{font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.stat-val{font-size:24px;font-weight:700;margin-top:5px}
+.stat-sub{font-size:11px;color:var(--text2);margin-top:3px}
+
+/* Table */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:9px 12px;color:var(--text2);font-size:11px;font-weight:700;border-bottom:1px solid var(--border);white-space:nowrap;text-transform:uppercase;letter-spacing:.3px}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAFAF8}
+
+/* Toolbar */
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap}
+.toolbar-l{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input[type=text],input[type=number],input[type=tel],input[type=password],input[type=date],textarea,select{
+  padding:8px 11px;border:1px solid var(--border);border-radius:7px;font-size:13px;
+  background:var(--surface);color:var(--text);outline:none;font-family:inherit;width:100%
+}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:72px}
+.search-box{width:220px;flex-shrink:0}
+.filter-sel{width:auto;padding:7px 10px}
+
+/* Modal */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
+.ov.on{display:flex}
+.modal{background:var(--surface);border-radius:14px;padding:28px;width:580px;max-width:100%;max-height:90vh;overflow-y:auto}
+.modal-sm{width:420px}
+.modal h2{font-size:17px;font-weight:700;margin-bottom:20px}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+
+/* Form */
+.fr{margin-bottom:14px}
+.fr label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:5px}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.fr4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+
+/* Image */
+.img-upload{width:100%;height:140px;border:2px dashed var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)}
+.img-upload img{width:100%;height:100%;object-fit:cover}
+.img-upload .ph{color:var(--text2);font-size:12px;text-align:center;pointer-events:none}
+
+/* Spec builder */
+.spec-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.spec-row{display:flex;gap:6px;align-items:center}
+.spec-row input{flex:1}
+
+/* Product cards */
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.pcard{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);overflow:hidden}
+.pcard-img{height:130px;background:var(--bg);overflow:hidden;position:relative}
+.pcard-img img{width:100%;height:100%;object-fit:cover}
+.pcard-img .no-img{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--text2)}
+.pcard-body{padding:12px}
+.pcard-name{font-weight:700;font-size:14px;margin-bottom:4px}
+.pcard-prices{font-size:11px;color:var(--text2);line-height:1.8}
+.pcard-price-row{display:flex;justify-content:space-between}
+.pcard-price-row .price{color:var(--accent);font-weight:700;font-size:13px}
+.pcard-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.out-of-stock{position:absolute;top:8px;right:8px;background:#EF4444;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px}
+.inactive{opacity:.5}
+
+/* Profit date row */
+.date-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.date-row input[type=date]{width:auto}
+
+/* Print styles */
+@media print{
+  .sb,.toolbar,.btn,.nb,.modal,.no-print{display:none!important}
+  .main{margin:0;padding:12px}
+  .pg{display:block!important}
+  table{font-size:11px}
+  .card{border:none;padding:0}
+}
+
+@media(max-width:900px){
+  .sb{width:52px}.sb-logo,.nb span,.nb .badge{display:none}
+  .main{margin-left:52px;padding:16px}
+  .stats{grid-template-columns:1fr 1fr}
+}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="sb">
+  <div class="sb-logo"><h1>🏪 批發商城</h1><p>後台管理系統</p></div>
+  <nav>
+    <div class="nb on" onclick="showPg('dashboard',this)"><span>📊 總覽</span></div>
+    <div class="nb" onclick="showPg('members',this)"><span>👥 會員管理</span><span class="badge" id="badge-pending" style="display:none">0</span></div>
+    <div class="nb" onclick="showPg('products',this)"><span>📦 商品管理</span></div>
+    <div class="nb" onclick="showPg('orders',this)"><span>📋 訂單管理</span></div>
+    <div class="nb" onclick="showPg('print',this)"><span>🖨️ 印出明細</span></div>
+    <div class="nb" onclick="showPg('profit',this)"><span>💰 利潤查詢</span></div>
+    <div class="nb" onclick="showPg('settings',this)"><span>⚙️ 設定</span></div>
+  </nav>
+</div>
+
+<div class="main">
+
+<!-- ── 總覽 ── -->
+<div id="pg-dashboard" class="pg on">
+  <div class="pg-title">📊 總覽</div>
+  <div class="stats">
+    <div class="stat"><div class="stat-label">總訂單</div><div class="stat-val" id="s-orders">—</div><div class="stat-sub">累計</div></div>
+    <div class="stat"><div class="stat-label">待處理訂單</div><div class="stat-val" style="color:var(--warn)" id="s-pending">—</div><div class="stat-sub">需確認</div></div>
+    <div class="stat"><div class="stat-label">本月營業額</div><div class="stat-val" style="color:var(--accent)" id="s-revenue">—</div><div class="stat-sub">含稅</div></div>
+    <div class="stat"><div class="stat-label">待審核會員</div><div class="stat-val" style="color:var(--info)" id="s-members">—</div><div class="stat-sub">申請中</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">最近訂單</div>
+    <div class="tw"><table id="dash-table">
+      <thead><tr><th>訂單編號</th><th>客戶</th><th>等級</th><th>金額</th><th>狀態</th><th>時間</th><th>操作</th></tr></thead>
+      <tbody id="dash-tbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ── 會員管理 ── -->
+<div id="pg-members" class="pg">
+  <div class="pg-title">👥 會員管理
+    <button class="btn btn-primary btn-sm" onclick="openMemberModal()">＋ 新增會員</button>
+  </div>
+  <div class="toolbar">
+    <div class="toolbar-l">
+      <input class="search-box" placeholder="搜尋姓名/電話/LINE" oninput="renderMembers(this.value)">
+      <select class="filter-sel" onchange="renderMembers('',this.value)">
+        <option value="">全部狀態</option>
+        <option value="pending">待審核</option>
+        <option value="approved">已核准</option>
+        <option value="rejected">已拒絕</option>
+      </select>
+      <select class="filter-sel" id="level-filter" onchange="renderMembers()">
+        <option value="">全部等級</option>
+        <option value="A">批發A</option>
+        <option value="B">批發B</option>
+        <option value="C">批發C</option>
+        <option value="retail">零售</option>
+      </select>
+    </div>
+  </div>
+  <div class="card"><div class="tw"><table>
+    <thead><tr><th>姓名</th><th>LINE ID</th><th>電話</th><th>等級</th><th>狀態</th><th>加入時間</th><th>操作</th></tr></thead>
+    <tbody id="members-tbody"></tbody>
+  </table></div></div>
+</div>
+
+<!-- ── 商品管理 ── -->
+<div id="pg-products" class="pg">
+  <div class="pg-title">📦 商品管理
+    <button class="btn btn-primary btn-sm" onclick="openProductModal()">＋ 新增商品</button>
+  </div>
+  <div id="product-grid" class="product-grid"></div>
+</div>
+
+<!-- ── 訂單管理 ── -->
+<div id="pg-orders" class="pg">
+  <div class="pg-title">📋 訂單管理
+    <button class="btn btn-primary btn-sm" onclick="openAdminOrderModal()">＋ 幫客人加單</button>
+  </div>
+  <div class="toolbar">
+    <div class="toolbar-l">
+      <input class="search-box" placeholder="搜尋客戶姓名/電話" oninput="renderOrders()">
+      <select class="filter-sel" id="ord-status-filter" onchange="renderOrders()">
+        <option value="">全部狀態</option>
+        <option value="待確認">待確認</option>
+        <option value="已確認">已確認</option>
+        <option value="已出貨">已出貨</option>
+        <option value="已結單">已結單</option>
+      </select>
+    </div>
+  </div>
+  <div class="card"><div class="tw"><table>
+    <thead><tr><th>訂單編號</th><th>客戶</th><th>等級</th><th>金額</th><th>狀態</th><th>時間</th><th>操作</th></tr></thead>
+    <tbody id="orders-tbody"></tbody>
+  </table></div></div>
+</div>
+
+<!-- ── 印出明細 ── -->
+<div id="pg-print" class="pg">
+  <div class="pg-title no-print">🖨️ 印出明細</div>
+  <div class="toolbar no-print">
+    <div class="toolbar-l">
+      <input class="search-box" id="print-search" placeholder="輸入客戶姓名或電話" oninput="renderPrint()">
+      <select class="filter-sel" id="print-status" onchange="renderPrint()">
+        <option value="">全部狀態</option>
+        <option value="待確認">待確認</option>
+        <option value="已確認">已確認</option>
+        <option value="已出貨">已出貨</option>
+        <option value="已結單">已結單</option>
+      </select>
+    </div>
+    <button class="btn btn-primary no-print" onclick="window.print()">🖨️ 列印</button>
+  </div>
+  <div id="print-area">
+    <div id="print-customer-header" style="margin-bottom:16px;display:none">
+      <h2 id="print-customer-name" style="font-size:16px"></h2>
+      <p id="print-meta" style="font-size:12px;color:var(--text2)"></p>
+    </div>
+    <div class="card"><div class="tw"><table>
+      <thead><tr><th>訂單編號</th><th>商品</th><th>規格</th><th>數量</th><th>單價</th><th>小計</th><th>狀態</th><th>時間</th></tr></thead>
+      <tbody id="print-tbody"></tbody>
+      <tfoot><tr><td colspan="5" style="text-align:right;font-weight:700;padding:10px 12px">合計</td><td id="print-total" style="font-weight:700;color:var(--accent);padding:10px 12px"></td><td colspan="2"></td></tr></tfoot>
+    </table></div></div>
+  </div>
+</div>
+
+<!-- ── 利潤查詢 ── -->
+<div id="pg-profit" class="pg">
+  <div class="pg-title">💰 利潤查詢</div>
+  <div class="card">
+    <div class="date-row">
+      <label style="white-space:nowrap;font-size:13px;font-weight:600">時間區間</label>
+      <input type="date" id="profit-from">
+      <span style="color:var(--text2)">～</span>
+      <input type="date" id="profit-to">
+      <button class="btn btn-primary" onclick="loadProfit()">查詢</button>
+      <button class="btn btn-ghost" onclick="setThisMonth()">本月</button>
+    </div>
+    <div class="stats" style="margin-bottom:0" id="profit-stats">
+      <div class="stat"><div class="stat-label">總營業額</div><div class="stat-val" id="p-revenue">—</div></div>
+      <div class="stat"><div class="stat-label">總成本</div><div class="stat-val" id="p-cost">—</div></div>
+      <div class="stat"><div class="stat-label">毛利</div><div class="stat-val" style="color:var(--success)" id="p-profit">—</div></div>
+      <div class="stat"><div class="stat-label">利潤率</div><div class="stat-val" id="p-margin">—</div></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">區間訂單明細</div>
+    <div class="tw"><table>
+      <thead><tr><th>訂單編號</th><th>客戶</th><th>等級</th><th>營業額</th><th>成本</th><th>毛利</th><th>狀態</th><th>時間</th></tr></thead>
+      <tbody id="profit-tbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ── 設定 ── -->
+<div id="pg-settings" class="pg">
+  <div class="pg-title">⚙️ 設定</div>
+  <div class="card" style="max-width:520px">
+    <div class="fr"><label>Google Apps Script 部署網址</label><input id="cfg-api" placeholder="https://script.google.com/macros/s/..."></div>
+    <div class="fr"><label>前台客人網址（shop.html 的 GitHub Pages 網址）</label><input id="cfg-shop" placeholder="https://xxx.github.io/shop.html"></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-primary" onclick="saveCfg()">儲存設定</button>
+      <button class="btn btn-ghost" onclick="testApi()">測試連線</button>
+    </div>
+    <div id="cfg-result" style="margin-top:10px;font-size:13px"></div>
+    <hr style="margin:20px 0;border:none;border-top:1px solid var(--border)">
+    <h3 style="font-size:14px;font-weight:700;margin-bottom:12px">📌 設定說明</h3>
+    <ol style="font-size:12px;color:var(--text2);line-height:2.2;padding-left:16px">
+      <li>Google Sheets 建立新試算表，複製網址中的 ID</li>
+      <li>Google Drive 建立資料夾，複製資料夾 ID</li>
+      <li>前往 script.google.com，新建專案，貼入 Code.gs</li>
+      <li>填入 SHEET_ID 和 FOLDER_ID，執行 initialize() 並授權</li>
+      <li>部署 → 網頁應用程式，執行身份「我」，存取「所有人」</li>
+      <li>複製部署網址，貼入上方，儲存設定</li>
+    </ol>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- ═══ Modals ═══ -->
+
+<!-- 會員 Modal -->
+<div class="ov" id="ov-member">
+<div class="modal">
+  <h2 id="member-modal-title">新增會員</h2>
+  <input type="hidden" id="m-id">
+  <div class="fr2">
+    <div class="fr"><label>姓名 *</label><input id="m-name" placeholder="王小明"></div>
+    <div class="fr"><label>LINE ID</label><input id="m-line" placeholder="@lineId"></div>
+  </div>
+  <div class="fr2">
+    <div class="fr"><label>電話 *</label><input id="m-phone" placeholder="09xxxxxxxx" type="tel"></div>
+    <div class="fr"><label>身分證號</label><input id="m-id-num" placeholder="A123456789"></div>
+  </div>
+  <div class="fr"><label>地址</label><input id="m-addr" placeholder="台北市..."></div>
+  <div class="fr2">
+    <div class="fr"><label>等級</label>
+      <select id="m-level">
+        <option value="retail">零售</option>
+        <option value="C">批發C</option>
+        <option value="B">批發B</option>
+        <option value="A">批發A</option>
+      </select>
+    </div>
+    <div class="fr"><label>狀態</label>
+      <select id="m-status">
+        <option value="approved">已核准</option>
+        <option value="pending">待審核</option>
+        <option value="rejected">已拒絕</option>
+      </select>
+    </div>
+  </div>
+  <div class="fr"><label>密碼（新增時必填，編輯留空不變更）</label><input id="m-pw" type="password" placeholder="至少6位數"></div>
+  <div class="fr"><label>備註</label><textarea id="m-note" rows="2"></textarea></div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeOv('ov-member')">取消</button>
+    <button class="btn btn-primary" onclick="saveMember()">儲存</button>
+  </div>
+</div></div>
+
+<!-- 商品 Modal -->
+<div class="ov" id="ov-product">
+<div class="modal">
+  <h2 id="product-modal-title">新增商品</h2>
+  <input type="hidden" id="p-id">
+  <div class="fr">
+    <label>商品圖片</label>
+    <div class="img-upload" id="p-img-preview" onclick="document.getElementById('p-img-file').click()">
+      <div class="ph">📷 點擊上傳圖片</div>
+    </div>
+    <input type="file" id="p-img-file" accept="image/*" style="display:none" onchange="uploadProductImg(this)">
+    <div id="p-img-status" style="font-size:11px;margin-top:4px;min-height:16px"></div>
+  </div>
+  <div class="fr2">
+    <div class="fr"><label>商品名稱 *</label><input id="p-name" placeholder="商品名稱"></div>
+    <div class="fr"><label>單位</label><input id="p-unit" placeholder="箱/包/個"></div>
+  </div>
+  <div class="fr"><label>商品說明</label><textarea id="p-desc" rows="2" placeholder="商品描述、規格說明..."></textarea></div>
+  <div class="fr2">
+    <div class="fr"><label>成本（不給客人看）</label><input id="p-cost" type="number" placeholder="0"></div>
+    <div class="fr"><label>供應商（不給客人看）</label><input id="p-supplier" placeholder="供應商名稱"></div>
+  </div>
+  <div class="fr">
+    <label>各等級售價</label>
+    <div class="fr4" style="margin-top:6px">
+      <div><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">批發A價</div><input id="p-priceA" type="number" placeholder="—"></div>
+      <div><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">批發B價</div><input id="p-priceB" type="number" placeholder="—"></div>
+      <div><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">批發C價</div><input id="p-priceC" type="number" placeholder="—"></div>
+      <div><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">零售價</div><input id="p-priceRetail" type="number" placeholder="—"></div>
+    </div>
+  </div>
+  <div class="fr">
+    <label>商品規格（可新增多種，客人每種都要選）</label>
+    <div id="spec-groups" style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px"></div>
+    <button class="btn btn-ghost btn-sm" type="button" onclick="addSpecGroup()">＋ 新增規格類別</button>
+    <div style="font-size:11px;color:var(--text2);margin-top:6px">例：新增「顏色」類別並填入紅／藍／黑，再新增「尺寸」類別填入 S／M／L</div>
+  </div>
+  <div class="fr2">
+    <div class="fr"><label><input type="checkbox" id="p-active" checked> 上架中</label></div>
+    <div class="fr"><label><input type="checkbox" id="p-instock" checked> 有庫存</label></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeOv('ov-product')">取消</button>
+    <button class="btn btn-primary" id="p-save-btn" onclick="saveProduct()">儲存商品</button>
+  </div>
+</div></div>
+
+<!-- 訂單詳情 Modal -->
+<div class="ov" id="ov-order">
+<div class="modal">
+  <h2>訂單詳情</h2>
+  <div id="order-detail"></div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeOv('ov-order')">關閉</button>
+    <button class="btn btn-warn" onclick="openEditOrder()">✏️ 改單</button>
+  </div>
+</div></div>
+
+<!-- 改單 Modal -->
+<div class="ov" id="ov-edit-order">
+<div class="modal">
+  <h2>改單</h2>
+  <input type="hidden" id="eo-id">
+  <div id="eo-items"></div>
+  <div style="margin-top:10px">
+    <button class="btn btn-ghost btn-sm" onclick="addEditItem()">＋ 新增商品</button>
+  </div>
+  <div class="fr" style="margin-top:12px"><label>備註</label><textarea id="eo-note" rows="2"></textarea></div>
+  <div class="fr"><label>狀態</label>
+    <select id="eo-status">
+      <option value="待確認">待確認</option>
+      <option value="已確認">已確認</option>
+      <option value="已出貨">已出貨</option>
+      <option value="已結單">已結單</option>
+    </select>
+  </div>
+  <div id="eo-total" style="text-align:right;font-weight:700;font-size:15px;margin-top:10px;color:var(--accent)"></div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeOv('ov-edit-order')">取消</button>
+    <button class="btn btn-primary" onclick="submitEditOrder()">儲存改單</button>
+  </div>
+</div></div>
+
+<!-- 幫客人加單 Modal -->
+<div class="ov" id="ov-admin-order">
+<div class="modal">
+  <h2>幫客人加單</h2>
+  <div class="fr"><label>選擇會員</label>
+    <select id="ao-member" onchange="onSelectMember()">
+      <option value="">— 選擇會員 —</option>
+    </select>
+  </div>
+  <div id="ao-member-info" style="font-size:12px;color:var(--text2);margin-bottom:12px;display:none"></div>
+  <div id="ao-items"></div>
+  <div style="margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="addAoItem()">＋ 新增商品</button></div>
+  <div class="fr" style="margin-top:12px"><label>備註</label><textarea id="ao-note" rows="2"></textarea></div>
+  <div id="ao-total" style="text-align:right;font-weight:700;font-size:15px;margin-top:10px;color:var(--accent)"></div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeOv('ov-admin-order')">取消</button>
+    <button class="btn btn-primary" onclick="submitAdminOrder()">建立訂單</button>
+  </div>
+</div></div>
+
+<!-- 商品訂單查看 Modal -->
+<div class="ov" id="ov-product-orders">
+<div class="modal">
+  <h2 id="po-title">商品訂單</h2>
+  <div class="tw"><table>
+    <thead><tr><th>LINE ID</th><th>姓名</th><th>等級</th><th>規格</th><th>數量</th><th>單價</th><th>成本</th><th>狀態</th></tr></thead>
+    <tbody id="po-tbody"></tbody>
+  </table></div>
+  <div id="po-summary" style="text-align:right;margin-top:10px;font-size:13px;color:var(--text2)"></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeOv('ov-product-orders')">關閉</button></div>
+</div></div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────
+let API = '';
+let allMembers = [], allOrders = [], allProducts = [];
+let editingOrderId = '';
+let uploadedImgUrl = '';
+
+window.onload = () => {
+  const cfg = JSON.parse(localStorage.getItem('ws_cfg') || '{}');
+  API = cfg.api || '';
+  if (cfg.api) document.getElementById('cfg-api').value = cfg.api;
+  if (cfg.shop) document.getElementById('cfg-shop').value = cfg.shop;
+  if (API) loadAll();
+};
+
+// ── API ───────────────────────────────────────────────────────
+async function get(action, params={}) {
+  if (!API) throw new Error('請先設定 API 網址');
+  const u = new URL(API);
+  u.searchParams.set('action', action);
+  u.searchParams.set('level', 'admin');
+  Object.entries(params).forEach(([k,v]) => u.searchParams.set(k,v));
+  const r = await fetch(u.toString());
+  const d = await r.json();
+  if (d.error) throw new Error(d.error);
+  return d;
+}
+
+async function send(body) {
+  if (!API) throw new Error('請先設定 API 網址');
+  const payload = JSON.stringify(body);
+  // GET 網址限制約 2000 字元，超過就分段送
+  const CHUNK = 1200;
+  if (payload.length <= CHUNK) {
+    const u = new URL(API);
+    u.searchParams.set('action', body.action);
+    u.searchParams.set('payload', payload);
+    const r = await fetch(u.toString());
+    const text = await r.text();
+    if (text.trim().startsWith('<')) throw new Error('API 回傳 HTML，請確認部署網址和存取權限（存取設定需選「所有人」）');
+    const d = JSON.parse(text);
+    if (d.error) throw new Error(d.error);
+    return d;
+  }
+  // 分段送出
+  const chunkId = Date.now().toString(36);
+  const chunks = [];
+  for (let i = 0; i < payload.length; i += CHUNK) chunks.push(payload.slice(i, i + CHUNK));
+  let lastResult;
+  for (let i = 0; i < chunks.length; i++) {
+    const u = new URL(API);
+    u.searchParams.set('action', body.action);
+    u.searchParams.set('chunk', chunks[i]);
+    u.searchParams.set('chunkId', chunkId);
+    u.searchParams.set('chunkIdx', i);
+    u.searchParams.set('chunkTotal', chunks.length);
+    const r = await fetch(u.toString());
+    const text = await r.text();
+    if (text.trim().startsWith('<')) throw new Error('API 回傳 HTML，請確認部署設定');
+    lastResult = JSON.parse(text);
+    if (lastResult.error) throw new Error(lastResult.error);
+  }
+  return lastResult;
+}
+
+async function sendPost(body) {
+  if (!API) throw new Error('請先設定 API 網址');
+  const r = await fetch(API, {
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers: { 'Content-Type': 'text/plain' }
+  });
+  const text = await r.text();
+  if (text.trim().startsWith('<')) throw new Error('API 回傳 HTML，請確認部署設定');
+  const d = JSON.parse(text);
+  if (d.error) throw new Error(d.error);
+  return d;
+}
+
+// ── Load ──────────────────────────────────────────────────────
+async function loadAll() {
+  try {
+    const [stats, orders, products, members] = await Promise.all([
+      get('getStats'), get('getOrders'), get('getProducts',{level:'admin'}), get('getMembers')
+    ]);
+    allOrders = orders; allProducts = products; allMembers = members;
+    renderStats(stats);
+    renderDashboard();
+    renderMembers();
+    renderProducts();
+    renderOrders();
+    renderPrint();
+    const pending = members.filter(m=>m.status==='pending').length;
+    const badge = document.getElementById('badge-pending');
+    badge.textContent = pending;
+    badge.style.display = pending ? '' : 'none';
+  } catch(e) { console.error(e); }
+}
+
+// ── Stats ─────────────────────────────────────────────────────
+function renderStats(s) {
+  document.getElementById('s-orders').textContent = s.totalOrders;
+  document.getElementById('s-pending').textContent = s.pendingOrders;
+  document.getElementById('s-revenue').textContent = 'NT$' + num(s.totalRevenue);
+  document.getElementById('s-members').textContent = s.pendingMembers;
+}
+
+// ── Dashboard ─────────────────────────────────────────────────
+function renderDashboard() {
+  const rows = [...allOrders].sort((a,b)=>b.id.localeCompare(a.id)).slice(0,10);
+  document.getElementById('dash-tbody').innerHTML = rows.map(o=>`
+    <tr>
+      <td style="font-family:monospace;font-size:11px">${o.id}</td>
+      <td>${o.memberName}</td>
+      <td>${levelTag(o.memberLevel)}</td>
+      <td style="font-weight:700;color:var(--accent)">NT$${num(o.total)}</td>
+      <td>${ordTag(o.status)}</td>
+      <td style="color:var(--text2)">${o.createdAt||''}</td>
+      <td><button class="btn btn-ghost btn-xs" onclick="showOrderDetail('${o.id}')">詳情</button></td>
+    </tr>`).join('');
+}
+
+// ── Members ───────────────────────────────────────────────────
+function renderMembers(q='', status='', level='') {
+  const sq = (document.querySelector('#pg-members .search-box')?.value||q).toLowerCase();
+  const sf = document.getElementById('level-filter')?.value || level;
+  const ss = status || document.querySelector('#pg-members .filter-sel:not(#level-filter)')?.value || '';
+  const filtered = allMembers.filter(m=>{
+    const txt = (m.name+m.phone+(m.lineId||'')).toLowerCase();
+    return txt.includes(sq) && (ss?m.status===ss:true) && (sf?m.level===sf:true);
+  });
+  document.getElementById('members-tbody').innerHTML = filtered.map(m=>`
+    <tr>
+      <td><b>${m.name}</b></td>
+      <td style="font-family:monospace;color:var(--text2)">${m.lineId||'—'}</td>
+      <td>${m.phone}</td>
+      <td>${levelTag(m.level)}</td>
+      <td><span class="tag tag-${m.status}">${{pending:'待審核',approved:'已核准',rejected:'已拒絕'}[m.status]||m.status}</span></td>
+      <td style="color:var(--text2);font-size:12px">${m.joinedAt||''}</td>
+      <td>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          ${m.status==='pending'?`
+            <button class="btn btn-success btn-xs" onclick="quickApprove('${m.id}')">✓ 核准</button>
+            <button class="btn btn-danger btn-xs" onclick="quickReject('${m.id}')">✗ 拒絕</button>
+          `:''}
+          <button class="btn btn-ghost btn-xs" onclick="editMember('${m.id}')">編輯</button>
+          <button class="btn btn-danger btn-xs" onclick="delMember('${m.id}')">刪除</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function openMemberModal(member=null) {
+  document.getElementById('member-modal-title').textContent = member?'編輯會員':'新增會員';
+  document.getElementById('m-id').value = member?.id||'';
+  document.getElementById('m-name').value = member?.name||'';
+  document.getElementById('m-line').value = member?.lineId||'';
+  document.getElementById('m-phone').value = member?.phone||'';
+  document.getElementById('m-id-num').value = member?.idNumber||'';
+  document.getElementById('m-addr').value = member?.address||'';
+  document.getElementById('m-level').value = member?.level||'retail';
+  document.getElementById('m-status').value = member?.status||'approved';
+  document.getElementById('m-note').value = member?.note||'';
+  document.getElementById('m-pw').value = '';
+  showOv('ov-member');
+}
+
+function editMember(id) {
+  const m = allMembers.find(m=>m.id===id);
+  if(m) openMemberModal(m);
+}
+
+async function saveMember() {
+  const id = document.getElementById('m-id').value;
+  const pw = document.getElementById('m-pw').value;
+  if (!id && !pw) { alert('新增會員請填入密碼'); return; }
+  const data = {
+    id, name: v('m-name'), lineId: v('m-line'), phone: v('m-phone'),
+    idNumber: v('m-id-num'), address: v('m-addr'),
+    level: v('m-level'), status: v('m-status'), note: v('m-note')
+  };
+  if (!data.name || !data.phone) { alert('請填入姓名和電話'); return; }
+  try {
+    if (id) {
+      if (pw) data.password = pw;
+      await send({ action:'updateMember', ...data });
+    } else {
+      data.password = pw;
+      await send({ action:'register', ...data });
+      await send({ action:'approveMember', id: '?', level: data.level }); // will fix after register
+    }
+    closeOv('ov-member');
+    await loadAll();
+  } catch(e) { alert('儲存失敗：'+e.message); }
+}
+
+async function quickApprove(id) {
+  const level = prompt('設定等級：A / B / C / retail', 'C');
+  if (!level) return;
+  await send({ action:'approveMember', id, level });
+  await loadAll();
+}
+
+async function quickReject(id) {
+  if (!confirm('確定拒絕此會員？')) return;
+  await send({ action:'rejectMember', id });
+  await loadAll();
+}
+
+async function delMember(id) {
+  if (!confirm('確定刪除此會員？')) return;
+  await send({ action:'deleteMember', id });
+  await loadAll();
+}
+
+// ── Products ──────────────────────────────────────────────────
+function renderProducts() {
+  const grid = document.getElementById('product-grid');
+  if (!allProducts.length) {
+    grid.innerHTML = '<p style="color:var(--text2);padding:32px;grid-column:1/-1;text-align:center">尚無商品，點擊「新增商品」開始</p>';
+    return;
+  }
+  grid.innerHTML = allProducts.map(p=>`
+    <div class="pcard ${p.active?'':'inactive'}">
+      <div class="pcard-img">
+        ${p.image?`<img src="${p.image}" alt="${p.name}" loading="lazy">`:'<div class="no-img">🛍️</div>'}
+        ${!p.inStock?'<div class="out-of-stock">斷貨</div>':''}
+      </div>
+      <div class="pcard-body">
+        <div class="pcard-name">${p.name}</div>
+        <div class="pcard-prices">
+          ${p.priceA?`<div class="pcard-price-row"><span>批發A</span><span class="price">NT$${num(p.priceA)}</span></div>`:''}
+          ${p.priceB?`<div class="pcard-price-row"><span>批發B</span><span class="price">NT$${num(p.priceB)}</span></div>`:''}
+          ${p.priceC?`<div class="pcard-price-row"><span>批發C</span><span class="price">NT$${num(p.priceC)}</span></div>`:''}
+          ${p.priceRetail?`<div class="pcard-price-row"><span>零售</span><span class="price">NT$${num(p.priceRetail)}</span></div>`:''}
+          <div class="pcard-price-row" style="margin-top:2px"><span style="color:#888">成本</span><span style="color:#888">NT$${num(p.cost)}</span></div>
+        </div>
+        <div class="pcard-actions">
+          <button class="btn btn-info btn-xs" onclick="showProductOrders('${p.id}')">查訂單</button>
+          <button class="btn btn-ghost btn-xs" onclick="editProduct('${p.id}')">編輯</button>
+          <button class="btn ${p.inStock?'btn-warn':'btn-success'} btn-xs" onclick="toggleStock('${p.id}',${!p.inStock})">${p.inStock?'標記斷貨':'恢復庫存'}</button>
+          <button class="btn btn-danger btn-xs" onclick="delProduct('${p.id}')">刪除</button>
+        </div>
+        <div style="margin-top:8px;font-size:11px">
+          <a href="${document.getElementById('cfg-shop')?.value||'shop.html'}?product=${p.id}" target="_blank" style="color:var(--info)">🔗 單品連結</a>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function openProductModal(product=null) {
+  document.getElementById('product-modal-title').textContent = product?'編輯商品':'新增商品';
+  document.getElementById('p-id').value = product?.id||'';
+  document.getElementById('p-name').value = product?.name||'';
+  document.getElementById('p-unit').value = product?.unit||'';
+  document.getElementById('p-desc').value = product?.desc||'';
+  document.getElementById('p-cost').value = product?.cost||'';
+  document.getElementById('p-supplier').value = product?.supplier||'';
+  document.getElementById('p-priceA').value = product?.priceA||'';
+  document.getElementById('p-priceB').value = product?.priceB||'';
+  document.getElementById('p-priceC').value = product?.priceC||'';
+  document.getElementById('p-priceRetail').value = product?.priceRetail||'';
+  document.getElementById('p-active').checked = product?.active!==false;
+  document.getElementById('p-instock').checked = product?.inStock!==false;
+  uploadedImgUrl = product?.image||'';
+  const prev = document.getElementById('p-img-preview');
+  prev.innerHTML = uploadedImgUrl?`<img src="${uploadedImgUrl}">`:'<div class="ph">📷 點擊上傳圖片</div>';
+  document.getElementById('p-img-status').textContent = '';
+  document.getElementById('p-save-btn').disabled = false;
+  document.getElementById('p-save-btn').textContent = '儲存商品';
+  // Specs — new multi-group format
+  const specGroups = document.getElementById('spec-groups');
+  specGroups.innerHTML = '';
+  const specs = product?.specs || [];
+  if (specs.length && typeof specs[0] === 'object' && specs[0].name !== undefined) {
+    // new format: [{name:'顏色', options:['紅','藍']}]
+    specs.forEach(g => addSpecGroup(g));
+  } else if (specs.length) {
+    // legacy flat array: convert to single group
+    addSpecGroup({ name: '規格', options: specs });
+  }
+  showOv('ov-product');
+}
+
+function editProduct(id) {
+  const p = allProducts.find(p=>p.id===id);
+  if(p) openProductModal(p);
+}
+
+function addSpecGroup(group=null) {
+  const container = document.getElementById('spec-groups');
+  const div = document.createElement('div');
+  div.style.cssText = 'background:var(--bg);border-radius:8px;padding:12px;border:1px solid var(--border)';
+  const opts = (group?.options || []).map(o =>
+    `<div class="spec-row" style="margin-bottom:6px">
+      <input type="text" placeholder="選項，如：紅色" value="${o}" style="flex:1">
+      <button class="btn btn-danger btn-xs" type="button" onclick="this.parentElement.remove();updateSpecCount(this)">✕</button>
+    </div>`
+  ).join('');
+  div.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <input type="text" placeholder="規格名稱，如：顏色、尺寸" value="${group?.name||''}"
+        style="flex:1;font-weight:700;font-size:13px" class="spec-group-name">
+      <button class="btn btn-danger btn-xs" type="button" onclick="this.closest('[data-spec-group]').remove()">刪除類別</button>
+    </div>
+    <div class="spec-options">${opts}</div>
+    <button class="btn btn-ghost btn-xs" type="button" onclick="addSpecOption(this)" style="margin-top:4px">＋ 新增選項</button>`;
+  div.setAttribute('data-spec-group', '');
+  container.appendChild(div);
+}
+
+function addSpecOption(btn) {
+  const optContainer = btn.previousElementSibling;
+  const row = document.createElement('div');
+  row.className = 'spec-row';
+  row.style.cssText = 'margin-bottom:6px';
+  row.innerHTML = `<input type="text" placeholder="選項，如：紅色" style="flex:1">
+    <button class="btn btn-danger btn-xs" type="button" onclick="this.parentElement.remove()">✕</button>`;
+  optContainer.appendChild(row);
+}
+
+function getSpecsFromForm() {
+  const groups = [];
+  document.querySelectorAll('#spec-groups [data-spec-group]').forEach(div => {
+    const name = div.querySelector('.spec-group-name').value.trim();
+    const options = Array.from(div.querySelectorAll('.spec-options input'))
+      .map(i => i.value.trim()).filter(Boolean);
+    if (name && options.length) groups.push({ name, options });
+  });
+  return groups;
+}
+
+async function uploadProductImg(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const prev = document.getElementById('p-img-preview');
+    prev.innerHTML = `<img src="${e.target.result}">`;
+  };
+  reader.readAsDataURL(file);
+  const btn = document.getElementById('p-save-btn');
+  const status = document.getElementById('p-img-status');
+  btn.disabled = true; btn.textContent = '圖片上傳中...';
+  status.style.color = 'var(--warn)'; status.textContent = '⏳ 上傳中...';
+  uploadedImgUrl = '';
+  const b64r = new FileReader();
+  b64r.onload = async e => {
+    try {
+      const res = await sendPost({ action:'uploadImage', base64: e.target.result.split(',')[1], mimeType: file.type, filename: file.name });
+      uploadedImgUrl = res.url;
+      status.style.color = 'var(--success)'; status.textContent = '✅ 上傳成功，可以儲存';
+    } catch(err) {
+      status.style.color = 'var(--accent)'; status.textContent = '❌ 上傳失敗：'+err.message;
+    } finally {
+      btn.disabled = false; btn.textContent = '儲存商品';
+    }
+  };
+  b64r.readAsDataURL(file);
+}
+
+async function saveProduct() {
+  const id = document.getElementById('p-id').value;
+  const specs = getSpecsFromForm();
+  const data = {
+    name: v('p-name'), unit: v('p-unit'), desc: v('p-desc'),
+    cost: v('p-cost'), supplier: v('p-supplier'),
+    priceA: v('p-priceA'), priceB: v('p-priceB'), priceC: v('p-priceC'), priceRetail: v('p-priceRetail'),
+    active: document.getElementById('p-active').checked,
+    inStock: document.getElementById('p-instock').checked,
+    image: uploadedImgUrl, specs
+  };
+  if (!data.name) { alert('請填入商品名稱'); return; }
+  try {
+    await send({ action: id?'updateProduct':'addProduct', id, ...data });
+    closeOv('ov-product');
+    await loadAll();
+  } catch(e) { alert('儲存失敗：'+e.message); }
+}
+
+async function toggleStock(id, inStock) {
+  await send({ action:'toggleStock', id, inStock });
+  await loadAll();
+}
+
+async function delProduct(id) {
+  if (!confirm('確定刪除商品？')) return;
+  await send({ action:'deleteProduct', id });
+  await loadAll();
+}
+
+async function showProductOrders(productId) {
+  const p = allProducts.find(p=>p.id===productId);
+  document.getElementById('po-title').textContent = `「${p?.name||''}」的訂單`;
+  const orders = await get('getProductOrders', { productId });
+  let totalQty=0, totalRev=0, totalCost=0;
+  document.getElementById('po-tbody').innerHTML = orders.map(o=>{
+    const item = o.items.find(i=>i.productId===productId)||{};
+    totalQty += item.qty||0;
+    totalRev += (item.price||0)*(item.qty||0);
+    totalCost += (item.cost||0)*(item.qty||0);
+    return `<tr>
+      <td style="font-family:monospace;color:var(--text2)">${o.memberLineId||'—'}</td>
+      <td>${o.memberName}</td>
+      <td>${levelTag(o.memberLevel)}</td>
+      <td>${item.spec||'—'}</td>
+      <td>${item.qty||0}</td>
+      <td>NT$${num(item.price)}</td>
+      <td style="color:var(--text2)">NT$${num(item.cost)}</td>
+      <td>${ordTag(o.status)}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('po-summary').innerHTML =
+    `共 <b>${orders.length}</b> 筆訂單・數量 <b>${totalQty}</b>・營業額 <b style="color:var(--accent)">NT$${num(totalRev)}</b>・成本 NT$${num(totalCost)}・毛利 <b style="color:var(--success)">NT$${num(totalRev-totalCost)}</b>`;
+  showOv('ov-product-orders');
+}
+
+// ── Orders ────────────────────────────────────────────────────
+function renderOrders() {
+  const q = (document.querySelector('#pg-orders .search-box')?.value||'').toLowerCase();
+  const sf = document.getElementById('ord-status-filter')?.value||'';
+  const filtered = allOrders.filter(o=>{
+    const txt = (o.memberName+o.memberPhone).toLowerCase();
+    return txt.includes(q) && (sf?o.status===sf:true);
+  });
+  document.getElementById('orders-tbody').innerHTML = filtered.sort((a,b)=>b.id.localeCompare(a.id)).map(o=>`
+    <tr>
+      <td style="font-family:monospace;font-size:11px">${o.id}</td>
+      <td>${o.memberName}<br><span style="font-size:11px;color:var(--text2)">${o.memberPhone}</span></td>
+      <td>${levelTag(o.memberLevel)}</td>
+      <td style="font-weight:700;color:var(--accent)">NT$${num(o.total)}</td>
+      <td>${ordTag(o.status)}</td>
+      <td style="color:var(--text2);font-size:12px">${o.createdAt||''}</td>
+      <td>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-xs" onclick="showOrderDetail('${o.id}')">詳情</button>
+          <select class="filter-sel" style="font-size:11px;padding:3px 6px;width:auto" onchange="quickStatus('${o.id}',this.value);this.value=''">
+            <option value="">更新狀態</option>
+            <option value="已確認">已確認</option>
+            <option value="已出貨">已出貨</option>
+            <option value="已結單">已結單</option>
+          </select>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function showOrderDetail(id) {
+  const o = allOrders.find(o=>o.id===id);
+  if (!o) return;
+  editingOrderId = id;
+  const items = o.items||[];
+  document.getElementById('order-detail').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;font-size:13px">
+      <div><b>客戶</b><br>${o.memberName}</div>
+      <div><b>電話</b><br>${o.memberPhone}</div>
+      <div><b>LINE</b><br>${o.memberLineId||'—'}</div>
+      <div><b>等級</b><br>${levelTag(o.memberLevel)}</div>
+      <div><b>狀態</b><br>${ordTag(o.status)}</div>
+      <div><b>下單時間</b><br><span style="color:var(--text2)">${o.createdAt||'—'}</span></div>
+      ${o.note?`<div style="grid-column:1/-1"><b>備註</b><br>${o.note}</div>`:''}
+    </div>
+    <div style="background:var(--bg);border-radius:8px;padding:12px">
+      ${items.map(i=>`
+        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px">
+          <span>${i.name}${i.spec?' · '+i.spec:''} ×${i.qty}</span>
+          <span>NT$${num(i.price*i.qty)}</span>
+        </div>`).join('')}
+      <div style="display:flex;justify-content:space-between;font-weight:700;border-top:1px solid var(--border);margin-top:8px;padding-top:8px">
+        <span>合計</span><span style="color:var(--accent)">NT$${num(o.total)}</span>
+      </div>
+    </div>`;
+  showOv('ov-order');
+}
+
+function openEditOrder() {
+  const o = allOrders.find(o=>o.id===editingOrderId);
+  if (!o) return;
+  closeOv('ov-order');
+  document.getElementById('eo-id').value = o.id;
+  document.getElementById('eo-note').value = o.note||'';
+  document.getElementById('eo-status').value = o.status||'待確認';
+  const container = document.getElementById('eo-items');
+  container.innerHTML = '';
+  (o.items||[]).forEach(i => addEditItemRow(container, i));
+  calcEoTotal();
+  showOv('ov-edit-order');
+}
+
+function addEditItem() {
+  addEditItemRow(document.getElementById('eo-items'));
+  calcEoTotal();
+}
+
+function addEditItemRow(container, item=null) {
+  const div = document.createElement('div');
+  div.className = 'spec-row';
+  div.style.cssText = 'gap:6px;margin-bottom:8px;align-items:center';
+  const prodOpts = allProducts.map(p=>`<option value="${p.id}" data-priceA="${p.priceA||0}" data-priceB="${p.priceB||0}" data-priceC="${p.priceC||0}" data-priceRetail="${p.priceRetail||0}" data-cost="${p.cost||0}" ${item&&item.productId===p.id?'selected':''}>${p.name}</option>`).join('');
+  div.innerHTML = `
+    <select style="flex:2" onchange="calcEoTotal()">${prodOpts}</select>
+    <input type="text" placeholder="規格" style="flex:1" value="${item?.spec||''}">
+    <input type="number" placeholder="數量" style="flex:0.6;min-width:60px" value="${item?.qty||1}" oninput="calcEoTotal()">
+    <input type="number" placeholder="單價" style="flex:0.8;min-width:70px" value="${item?.price||''}" oninput="calcEoTotal()">
+    <button class="btn btn-danger btn-xs" onclick="this.parentElement.remove();calcEoTotal()">✕</button>`;
+  container.appendChild(div);
+}
+
+function calcEoTotal() {
+  let total = 0;
+  document.querySelectorAll('#eo-items .spec-row').forEach(row=>{
+    const qty = Number(row.querySelector('input[type=number]').value)||0;
+    const price = Number(row.querySelectorAll('input[type=number]')[1].value)||0;
+    total += qty*price;
+  });
+  document.getElementById('eo-total').textContent = `合計：NT$${num(total)}`;
+}
+
+async function submitEditOrder() {
+  const id = document.getElementById('eo-id').value;
+  const o = allOrders.find(o=>o.id===id);
+  const items = [];
+  let total = 0;
+  document.querySelectorAll('#eo-items .spec-row').forEach(row=>{
+    const sel = row.querySelector('select');
+    const p = allProducts.find(p=>p.id===sel.value);
+    const spec = row.querySelector('input[type=text]').value;
+    const qty = Number(row.querySelector('input[type=number]').value)||0;
+    const price = Number(row.querySelectorAll('input[type=number]')[1].value)||0;
+    const cost = p?.cost||0;
+    total += qty*price;
+    items.push({ productId: sel.value, name: p?.name||'', spec, qty, price, cost, subtotal: qty*price });
+  });
+  await send({ action:'updateOrder', id, items, total, note: v('eo-note'), status: v('eo-status') });
+  closeOv('ov-edit-order');
+  await loadAll();
+}
+
+async function quickStatus(id, status) {
+  if (!status) return;
+  await send({ action:'updateOrderStatus', id, status });
+  await loadAll();
+}
+
+// ── Admin Order ───────────────────────────────────────────────
+function openAdminOrderModal() {
+  const sel = document.getElementById('ao-member');
+  sel.innerHTML = '<option value="">— 選擇會員 —</option>' +
+    allMembers.filter(m=>m.status==='approved').map(m=>`<option value="${m.id}">${m.name} (${m.phone}) [${m.level}]</option>`).join('');
+  document.getElementById('ao-items').innerHTML = '';
+  document.getElementById('ao-note').value = '';
+  document.getElementById('ao-member-info').style.display = 'none';
+  addAoItem();
+  showOv('ov-admin-order');
+}
+
+function onSelectMember() {
+  const id = document.getElementById('ao-member').value;
+  const m = allMembers.find(m=>m.id===id);
+  const info = document.getElementById('ao-member-info');
+  if (m) { info.textContent = `等級：${m.level} ｜ LINE：${m.lineId||'—'} ｜ 電話：${m.phone}`; info.style.display=''; }
+  else info.style.display='none';
+  calcAoTotal();
+}
+
+function addAoItem() {
+  const container = document.getElementById('ao-items');
+  const div = document.createElement('div');
+  div.className = 'spec-row';
+  div.style.cssText = 'gap:6px;margin-bottom:8px;align-items:center';
+  const memberId = document.getElementById('ao-member').value;
+  const member = allMembers.find(m=>m.id===memberId);
+  const prodOpts = allProducts.filter(p=>p.active&&p.inStock).map(p=>{
+    const price = member ? (p['price'+member.level.toUpperCase()] || p['price'+member.level] || p.priceRetail || 0) : 0;
+    return `<option value="${p.id}" data-price="${price}" data-cost="${p.cost||0}">${p.name}</option>`;
+  }).join('');
+  div.innerHTML = `
+    <select style="flex:2" onchange="calcAoTotal()">${prodOpts}</select>
+    <input type="text" placeholder="規格" style="flex:1">
+    <input type="number" placeholder="數量" style="flex:0.6;min-width:60px" value="1" oninput="calcAoTotal()">
+    <input type="number" placeholder="單價" style="flex:0.8;min-width:70px" oninput="calcAoTotal()">
+    <button class="btn btn-danger btn-xs" onclick="this.parentElement.remove();calcAoTotal()">✕</button>`;
+  container.appendChild(div);
+}
+
+function calcAoTotal() {
+  let total = 0;
+  document.querySelectorAll('#ao-items .spec-row').forEach(row=>{
+    const qty = Number(row.querySelector('input[type=number]').value)||0;
+    const price = Number(row.querySelectorAll('input[type=number]')[1]?.value)||0;
+    total += qty*price;
+  });
+  document.getElementById('ao-total').textContent = `合計：NT$${num(total)}`;
+}
+
+async function submitAdminOrder() {
+  const memberId = document.getElementById('ao-member').value;
+  if (!memberId) { alert('請選擇會員'); return; }
+  const member = allMembers.find(m=>m.id===memberId);
+  const items = [];
+  let total = 0;
+  document.querySelectorAll('#ao-items .spec-row').forEach(row=>{
+    const sel = row.querySelector('select');
+    const p = allProducts.find(p=>p.id===sel.value);
+    const spec = row.querySelector('input[type=text]').value;
+    const qty = Number(row.querySelector('input[type=number]').value)||0;
+    const price = Number(row.querySelectorAll('input[type=number]')[1].value)||0;
+    total += qty*price;
+    items.push({ productId: sel.value, name: p?.name||'', spec, qty, price, cost: p?.cost||0, subtotal: qty*price });
+  });
+  await send({ action:'adminAddOrder', memberId, memberName: member.name, memberPhone: member.phone, memberLineId: member.lineId||'', memberLevel: member.level, items, total, note: v('ao-note') });
+  closeOv('ov-admin-order');
+  await loadAll();
+}
+
+// ── Print ─────────────────────────────────────────────────────
+function renderPrint() {
+  const q = (document.getElementById('print-search')?.value||'').toLowerCase();
+  const sf = document.getElementById('print-status')?.value||'';
+  let filtered = allOrders.filter(o=>{
+    const txt = (o.memberName+o.memberPhone).toLowerCase();
+    return txt.includes(q) && (sf?o.status===sf:true);
+  });
+  const header = document.getElementById('print-customer-header');
+  if (q) {
+    const m = allMembers.find(m=>(m.name.toLowerCase().includes(q)||m.phone.includes(q)));
+    if (m) {
+      header.style.display='';
+      document.getElementById('print-customer-name').textContent = m.name + ' 的訂單明細';
+      document.getElementById('print-meta').textContent = `電話：${m.phone} ｜ LINE：${m.lineId||'—'} ｜ 等級：${m.level} ｜ 列印：${new Date().toLocaleDateString('zh-TW')}`;
+    }
+  } else { header.style.display='none'; }
+
+  let grandTotal = 0;
+  const rows = [];
+  filtered.sort((a,b)=>b.id.localeCompare(a.id)).forEach(o=>{
+    (o.items||[]).forEach(i=>{
+      const sub = (i.price||0)*(i.qty||0);
+      grandTotal += sub;
+      rows.push(`<tr>
+        <td style="font-family:monospace;font-size:11px">${o.id}</td>
+        <td>${i.name}</td>
+        <td>${i.spec||'—'}</td>
+        <td>${i.qty}</td>
+        <td>NT$${num(i.price)}</td>
+        <td>NT$${num(sub)}</td>
+        <td>${ordTag(o.status)}</td>
+        <td style="color:var(--text2);font-size:11px">${o.createdAt||''}</td>
+      </tr>`);
+    });
+  });
+  document.getElementById('print-tbody').innerHTML = rows.join('');
+  document.getElementById('print-total').textContent = 'NT$' + num(grandTotal);
+}
+
+// ── Profit ────────────────────────────────────────────────────
+function setThisMonth() {
+  const now = new Date();
+  const y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');
+  document.getElementById('profit-from').value = `${y}-${m}-01`;
+  document.getElementById('profit-to').value = `${y}-${m}-${new Date(y,now.getMonth()+1,0).getDate()}`;
+  loadProfit();
+}
+
+async function loadProfit() {
+  const from = document.getElementById('profit-from').value;
+  const to = document.getElementById('profit-to').value;
+  if (!from||!to) { alert('請選擇時間區間'); return; }
+  const stats = await get('getStats', { from, to });
+  document.getElementById('p-revenue').textContent = 'NT$'+num(stats.totalRevenue);
+  document.getElementById('p-cost').textContent = 'NT$'+num(stats.totalCost);
+  document.getElementById('p-profit').textContent = 'NT$'+num(stats.profit);
+  const margin = stats.totalRevenue>0 ? ((stats.profit/stats.totalRevenue)*100).toFixed(1)+'%' : '—';
+  document.getElementById('p-margin').textContent = margin;
+
+  const f = new Date(from), t = new Date(to); t.setHours(23,59,59);
+  const filtered = allOrders.filter(o=>{ const d=new Date(o.createdAt); return d>=f&&d<=t; });
+  document.getElementById('profit-tbody').innerHTML = filtered.sort((a,b)=>b.id.localeCompare(a.id)).map(o=>{
+    const profit = (Number(o.total)||0)-(Number(o.cost)||0);
+    return `<tr>
+      <td style="font-family:monospace;font-size:11px">${o.id}</td>
+      <td>${o.memberName}</td>
+      <td>${levelTag(o.memberLevel)}</td>
+      <td style="color:var(--accent)">NT$${num(o.total)}</td>
+      <td style="color:var(--text2)">NT$${num(o.cost)}</td>
+      <td style="font-weight:700;color:var(--success)">NT$${num(profit)}</td>
+      <td>${ordTag(o.status)}</td>
+      <td style="color:var(--text2);font-size:12px">${o.createdAt||''}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Settings ──────────────────────────────────────────────────
+function saveCfg() {
+  API = document.getElementById('cfg-api').value.trim();
+  localStorage.setItem('ws_cfg', JSON.stringify({ api: API, shop: document.getElementById('cfg-shop').value.trim() }));
+  alert('設定已儲存');
+  loadAll();
+}
+
+async function testApi() {
+  const el = document.getElementById('cfg-result');
+  el.textContent = '測試中...';
+  try {
+    const r = await get('getStats');
+    el.style.color='var(--success)';
+    el.textContent = `✅ 連線成功！${r.totalOrders} 筆訂單，${r.totalMembers} 位會員`;
+  } catch(e) {
+    el.style.color='var(--accent)';
+    el.textContent = '❌ 失敗：'+e.message;
+  }
+}
+
+// ── Utils ─────────────────────────────────────────────────────
+function showPg(name, el) {
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(n=>n.classList.remove('on'));
+  document.getElementById('pg-'+name).classList.add('on');
+  if(el) el.classList.add('on');
+  if(name==='print') renderPrint();
+  if(name==='profit') setThisMonth();
+}
+function showOv(id){ document.getElementById(id).classList.add('on'); }
+function closeOv(id){ document.getElementById(id).classList.remove('on'); }
+function v(id){ return document.getElementById(id)?.value||''; }
+function num(n){ return Number(n||0).toLocaleString(); }
+function levelTag(l){
+  const map={A:'批發A',B:'批發B',C:'批發C',retail:'零售'};
+  return `<span class="tag tag-${l}">${map[l]||l}</span>`;
+}
+function ordTag(s){
+  const map={'待確認':'tag-ord-pending','已確認':'tag-ord-confirmed','已出貨':'tag-ord-shipped','已結單':'tag-ord-closed'};
+  return `<span class="tag ${map[s]||''}">${s}</span>`;
+}
+document.querySelectorAll('.ov').forEach(el=>{
+  el.addEventListener('click', e=>{ if(e.target===el) el.classList.remove('on'); });
+});
+</script>
+</body>
+</html>
